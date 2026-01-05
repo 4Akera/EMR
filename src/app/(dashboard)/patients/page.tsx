@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Patient, Profile } from "@/lib/types/database";
+import { Patient, Profile, PatientUpdate } from "@/lib/types/database";
 import { formatDate, getSexLabel, calculateAge } from "@/lib/utils";
 import { Button, Input, Card, Modal, EmptyState } from "@/components/ui";
 import { PatientForm } from "@/components/patients/PatientForm";
@@ -87,6 +87,7 @@ export default function PatientsPage() {
     e.stopPropagation();
     if (!confirm(`Are you sure you want to delete ${patient.fullName}?`)) return;
 
+    // @ts-ignore - Supabase type inference issue
     const { error } = await supabase
       .from("patients")
       .update({ deletedAt: new Date().toISOString() })
@@ -101,6 +102,7 @@ export default function PatientsPage() {
 
   const handleRestore = async (patient: Patient, e: React.MouseEvent) => {
     e.stopPropagation();
+    // @ts-ignore - Supabase type inference issue
     const { error } = await supabase
       .from("patients")
       .update({ deletedAt: null })

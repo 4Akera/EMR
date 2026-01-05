@@ -12,13 +12,18 @@ A modern, simple hospital EMR web application built with Next.js 14, Tailwind CS
 - **Timeline**: Chronological actions including transfers, treatments, investigations
 - **Medications**: Dynamic start/stop medication tracking with automatic timeline entries
 - **Authentication**: Secure login with Supabase Auth
+- **PWA Support**: Install as a native app, works offline
+- **Export Options**: Copy, HTML, and PDF export for encounter summaries
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 
 ## Tech Stack
 
 - **Frontend**: Next.js 14 (App Router), React 18, TypeScript
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS (with responsive utilities)
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
+- **PWA**: Service Worker, Web App Manifest
+- **Icons**: Lucide React
 
 ## Getting Started
 
@@ -69,6 +74,28 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 2. Click "Need an account? Sign up"
 3. Enter email and password
 4. Check your email for confirmation (if email confirmation is enabled in Supabase)
+
+### 6. Set Up PWA Icons (Optional)
+
+Generate PWA icons for app installation:
+
+**Option A: Browser-based (Easy)**
+```bash
+# Open in browser: public/generate-icons.html
+# Download the generated icons and save to public/
+```
+
+**Option B: Using the script**
+```bash
+npm install --save-dev sharp
+npm run generate-icons
+```
+
+**Option C: Manual**
+- Convert `public/favicon.svg` to PNG (192x192 and 512x512)
+- Save as `icon-192.png` and `icon-512.png` in `public/`
+
+See [PWA-SETUP.md](./PWA-SETUP.md) for detailed instructions.
 
 ## Project Structure
 
@@ -136,15 +163,50 @@ src/
 - **Timeline**: type and text required
 - **Medications**: name required, status must be ACTIVE/STOPPED
 
+## PWA Features
+
+This app is a **Progressive Web App** (PWA) that can be installed on devices:
+
+- **Install**: Add to home screen on mobile or desktop
+- **Offline Mode**: Basic functionality works without internet
+- **App-like Experience**: Runs in standalone mode without browser chrome
+- **Responsive**: Optimized for all screen sizes
+
+### Installing the PWA
+
+**Desktop (Chrome/Edge):**
+- Click the install button (⊕) in the address bar
+- Or: Menu → Install Hospital EMR
+
+**Mobile (iOS/Android):**
+- Chrome: Menu → Add to Home Screen
+- Safari: Share → Add to Home Screen
+
+## Export Features
+
+Encounter summaries can be exported in multiple formats:
+
+- **📋 Copy**: Plain text to clipboard
+- **📄 HTML**: Beautifully formatted HTML file
+- **📑 PDF**: HTML file optimized for printing to PDF
+
+All exports include:
+- Patient demographics and history
+- Clinical documentation
+- Timeline of events
+- Diagnosis and problems
+- Attached images (in HTML/PDF)
+
 ## Future Extensions
 
 - Structured encounter problems table
 - Roles & permissions
-- File attachments
+- File attachments (photos, documents)
 - Structured vitals table
 - Lab/imaging orders and results
 - Audit log / version history
-- Discharge summary generator
+- Push notifications
+- Biometric authentication
 
 ## License
 
