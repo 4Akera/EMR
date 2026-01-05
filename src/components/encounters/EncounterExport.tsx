@@ -1,6 +1,6 @@
 "use client";
 
-import { FileDown, Copy, Check, FileCode } from "lucide-react";
+import { Copy, Check, FileCode } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useState } from "react";
 import type { Encounter, Patient, EncounterAction, EncounterFile, PatientDetails } from "@/lib/types/database";
@@ -769,25 +769,10 @@ export function EncounterExport({
     `;
   };
 
-  const handleDownloadPDF = () => {
-    const htmlContent = generateFullHTML();
-    
-    // Create and download HTML file (user can print to PDF from browser)
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Encounter_${patient.fullName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   const handleDownloadHTML = () => {
     const htmlContent = generateFullHTML();
     
-    // Create and download HTML file
+    // Create and download HTML file (can be printed to PDF from browser)
     const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -801,12 +786,12 @@ export function EncounterExport({
 
   return (
     <>
-      {/* Copy button - icon only on desktop */}
+      {/* Copy button - icon only, compact on all screens */}
       <Button
         variant="secondary"
         size="sm"
         onClick={handleCopyText}
-        className="hidden md:flex md:px-2"
+        className="px-2"
         title={copied ? "Copied to clipboard!" : "Copy encounter text"}
       >
         {copied ? (
@@ -816,68 +801,15 @@ export function EncounterExport({
         )}
       </Button>
       
-      {/* Copy button - with text on mobile */}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={handleCopyText}
-        className="flex md:hidden items-center gap-1.5"
-      >
-        {copied ? (
-          <>
-            <Check className="w-4 h-4" />
-            Copied!
-          </>
-        ) : (
-          <>
-            <Copy className="w-4 h-4" />
-            Copy
-          </>
-        )}
-      </Button>
-      
-      {/* HTML button - icon only on desktop */}
+      {/* HTML button - icon only, compact on all screens */}
       <Button
         variant="secondary"
         size="sm"
         onClick={handleDownloadHTML}
-        className="hidden md:flex md:px-2"
+        className="px-2"
         title="Download as HTML"
       >
         <FileCode className="w-4 h-4" />
-      </Button>
-      
-      {/* HTML button - with text on mobile */}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={handleDownloadHTML}
-        className="flex md:hidden items-center gap-1.5"
-      >
-        <FileCode className="w-4 h-4" />
-        HTML
-      </Button>
-      
-      {/* PDF button - icon only on desktop */}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={handleDownloadPDF}
-        className="hidden md:flex md:px-2"
-        title="Download as PDF (HTML format)"
-      >
-        <FileDown className="w-4 h-4" />
-      </Button>
-      
-      {/* PDF button - with text on mobile */}
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={handleDownloadPDF}
-        className="flex md:hidden items-center gap-1.5"
-      >
-        <FileDown className="w-4 h-4" />
-        PDF
       </Button>
     </>
   );

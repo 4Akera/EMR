@@ -65,6 +65,7 @@ import {
   Users,
   LogOut,
   Skull,
+  Camera,
 } from "lucide-react";
 import { EncounterExport } from "@/components/encounters/EncounterExport";
 
@@ -83,6 +84,10 @@ export default function EncounterDetailPage() {
   const encounterId = params.encounterId as string;
   const supabase = createClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const investigationCameraRef = useRef<HTMLInputElement>(null);
+  const investigationGalleryRef = useRef<HTMLInputElement>(null);
 
   // State
   const [isLoading, setIsLoading] = useState(true);
@@ -1359,8 +1364,8 @@ export default function EncounterDetailPage() {
           </div>
         </div>
 
-        {/* Right side - Action buttons - Compact on desktop */}
-        <div className="flex items-center gap-1.5">
+        {/* Right side - Action buttons - Compact on all screens */}
+        <div className="flex items-center gap-1">
           {/* Export buttons - always visible */}
           <EncounterExport 
             encounter={encounter} 
@@ -1373,7 +1378,7 @@ export default function EncounterDetailPage() {
           {/* Status change buttons - only for active encounters */}
           {isActive && (
             <>
-              {/* Discharge button - icon only on desktop */}
+              {/* Discharge button - icon only, compact on all screens */}
               <Button
                 variant="secondary"
                 size="sm"
@@ -1381,27 +1386,13 @@ export default function EncounterDetailPage() {
                   setStatusAction("discharge");
                   setIsStatusModalOpen(true);
                 }}
-                className="hidden md:flex md:px-2"
+                className="px-2"
                 title="Discharge patient"
               >
                 <LogOut className="w-4 h-4" />
               </Button>
               
-              {/* Discharge button - full text on mobile */}
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  setStatusAction("discharge");
-                  setIsStatusModalOpen(true);
-                }}
-                className="flex md:hidden"
-              >
-                <LogOut className="w-4 h-4" />
-                Discharge
-              </Button>
-              
-              {/* Deceased button - icon only on desktop */}
+              {/* Deceased button - icon only, compact on all screens */}
               <Button
                 variant="danger"
                 size="sm"
@@ -1409,24 +1400,10 @@ export default function EncounterDetailPage() {
                   setStatusAction("deceased");
                   setIsStatusModalOpen(true);
                 }}
-                className="hidden md:flex md:px-2"
+                className="px-2"
                 title="Mark as deceased"
               >
                 <Skull className="w-4 h-4" />
-              </Button>
-              
-              {/* Deceased button - full text on mobile */}
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => {
-                  setStatusAction("deceased");
-                  setIsStatusModalOpen(true);
-                }}
-                className="flex md:hidden"
-              >
-                <Skull className="w-4 h-4" />
-                Deceased
               </Button>
             </>
           )}
@@ -1960,11 +1937,12 @@ export default function EncounterDetailPage() {
                     </div>
                   )}
                   
-                      {/* Upload Button for Investigations */}
+                      {/* Upload Buttons for Investigations */}
                       <div className="flex gap-2">
+                        {/* Camera input for investigations */}
                         <input
+                          ref={investigationCameraRef}
                           type="file"
-                          id="investigation-file-input"
                           multiple
                           accept="image/*"
                           capture="environment"
@@ -2012,13 +1990,74 @@ export default function EncounterDetailPage() {
                           }}
                           className="hidden"
                         />
-                        <label
-                          htmlFor="investigation-file-input"
-                          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 cursor-pointer shadow-sm transition-colors"
+                        {/* Gallery input for investigations */}
+                        <input
+                          ref={investigationGalleryRef}
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={async (e) => {
+                            const selectedFiles = Array.from(e.target.files || []);
+                            for (const file of selectedFiles) {
+                              try {
+                                let processedFile = file;
+                                if (file.size > MAX_FILE_SIZE && file.type.startsWith("image/")) {
+                                  processedFile = await compressImage(file);
+                                } else if (file.type.startsWith("image/")) {
+                                  processedFile = await compressImage(file);
+                                }
+                                
+                                // Upload immediately to investigations (no actionId)
+                                const fileExt = processedFile.name.split(".").pop();
+                                const fileName = `${encounterId}/inv-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+                                
+                                const { data, error } = await supabase.storage
+                                  .from("encounter-files")
+                                  .upload(fileName, processedFile);
+                                
+                                if (!error && data) {
+                                  const { data: urlData } = supabase.storage
+                                    .from("encounter-files")
+                                    .getPublicUrl(data.path);
+                                  
+                                  const fileInsert: EncounterFileInsert = {
+                                    encounterId,
+                                    actionId: null,
+                                    fileName: processedFile.name,
+                                    fileType: processedFile.type,
+                                    fileUrl: urlData.publicUrl,
+                                    fileSize: processedFile.size,
+                                  };
+                                  
+                                  await supabase.from("encounter_files").insert(fileInsert as never);
+                                  fetchData();
+                                }
+                              } catch (error) {
+                                console.error("Error uploading investigation file:", error);
+                              }
+                            }
+                            e.target.value = "";
+                          }}
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => investigationCameraRef.current?.click()}
+                          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-sm transition-colors"
+                        >
+                          <Camera className="w-4 h-4" />
+                          <span className="hidden sm:inline">Take Photo</span>
+                          <span className="sm:hidden">Camera</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => investigationGalleryRef.current?.click()}
+                          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 shadow-sm transition-colors"
                         >
                           <ImageIcon className="w-4 h-4" />
-                          Add Photo
-                        </label>
+                          <span className="hidden sm:inline">From Gallery</span>
+                          <span className="sm:hidden">Gallery</span>
+                        </button>
                       </div>
                     </div>
                   )}
@@ -2122,22 +2161,50 @@ export default function EncounterDetailPage() {
                       <ChevronDown className="w-3 h-3" />
                     </button>
 
-                    {/* File upload button */}
+                    {/* File upload buttons */}
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => cameraInputRef.current?.click()}
                       className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
-                      title="Max 200KB per file. Images auto-compressed."
+                      title="Take photo with camera"
+                    >
+                      <Camera className="w-3 h-3" />
+                      <span className="hidden sm:inline">Camera</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => galleryInputRef.current?.click()}
+                      className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
+                      title="Select from gallery. Max 200KB per file."
                     >
                       <Paperclip className="w-3 h-3" />
-                      <span className="hidden sm:inline">Attach</span>
+                      <span className="hidden sm:inline">Files</span>
                     </button>
+                    {/* Camera input - opens camera directly */}
+                    <input
+                      ref={cameraInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    {/* Gallery/file picker input - opens file picker */}
+                    <input
+                      ref={galleryInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*,.pdf,.doc,.docx"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    {/* Legacy ref for backward compatibility */}
                     <input
                       ref={fileInputRef}
                       type="file"
                       multiple
                       accept="image/*,.pdf,.doc,.docx"
-                      capture="environment"
                       onChange={handleFileSelect}
                       className="hidden"
                     />
