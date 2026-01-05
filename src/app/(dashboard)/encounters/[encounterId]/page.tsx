@@ -1187,39 +1187,39 @@ export default function EncounterDetailPage() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 pb-20 md:pb-6">
+    <div className="space-y-3 md:space-y-4 lg:space-y-6 pb-20 md:pb-6">
       {/* Header - Mobile Optimized */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4">
         {/* Left side - Patient info */}
-        <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="flex items-start gap-2 md:gap-3 flex-1 min-w-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push(`/patients/${patient.id}`)}
-            className="flex-shrink-0 -ml-2"
+            className="flex-shrink-0 -ml-2 touch-manipulation"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back</span>
+            <ArrowLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="hidden sm:inline text-xs md:text-sm">Back</span>
           </Button>
           <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <h1 className="text-xl md:text-2xl font-bold text-surface-900 truncate">
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+              <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-surface-900 truncate">
                 {patient.fullName}
               </h1>
-              <Badge variant={getStatusVariant(encounter.status)}>
+              <Badge variant={getStatusVariant(encounter.status)} className="text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1">
                 {encounter.status}
               </Badge>
             </div>
             
             {/* Patient Demographics */}
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 text-xs md:text-sm text-surface-600 mb-2">
-              <span className="flex items-center gap-1 font-medium">
-                <User className="w-3 h-3 md:w-4 md:h-4" />
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 lg:gap-3 text-[10px] md:text-xs lg:text-sm text-surface-600 mb-1.5 md:mb-2">
+              <span className="flex items-center gap-0.5 md:gap-1 font-medium">
+                <User className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4" />
                 {calculateAge(patient.birthDate)}y • {patient.sex || 'U'}
               </span>
-              <span className="text-surface-400">•</span>
-              <span className="text-surface-500">{patient.mrn || 'No MRN'}</span>
-              <span className="text-surface-400">•</span>
+              <span className="text-surface-300">•</span>
+              <span className="text-surface-500 truncate max-w-[100px] sm:max-w-none">{patient.mrn || 'No MRN'}</span>
+              <span className="text-surface-300">•</span>
               {isEditingWeight ? (
                 <div className="flex items-center gap-1">
                   <input
@@ -1232,21 +1232,21 @@ export default function EncounterDetailPage() {
                       if (e.key === 'Escape') setIsEditingWeight(false);
                     }}
                     placeholder="kg"
-                    className="w-16 px-2 py-0.5 text-xs border border-primary-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    className="w-14 md:w-16 px-1.5 md:px-2 py-0.5 text-[10px] md:text-xs border border-primary-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
                     autoFocus
                   />
                   <button
                     onClick={handleSaveWeight}
                     disabled={isSavingWeight}
-                    className="text-green-600 hover:text-green-700"
+                    className="text-green-600 hover:text-green-700 touch-manipulation p-0.5"
                   >
-                    <Save className="w-3 h-3" />
+                    <Save className="w-3 h-3 md:w-3.5 md:h-3.5" />
                   </button>
                   <button
                     onClick={() => setIsEditingWeight(false)}
-                    className="text-surface-400 hover:text-surface-600"
+                    className="text-surface-400 hover:text-surface-600 touch-manipulation p-0.5"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-3 h-3 md:w-3.5 md:h-3.5" />
                   </button>
                 </div>
               ) : (
@@ -1255,37 +1255,38 @@ export default function EncounterDetailPage() {
                     setWeightInput(patientDetails?.weight?.toString() || "");
                     setIsEditingWeight(true);
                   }}
-                  className="flex items-center gap-1 hover:text-primary-600 transition-colors"
+                  className="flex items-center gap-0.5 md:gap-1 hover:text-primary-600 transition-colors touch-manipulation"
                 >
                   <span className="font-medium">
                     {patientDetails?.weight ? `${patientDetails.weight}kg` : 'Add weight'}
                   </span>
-                  <Edit2 className="w-3 h-3" />
+                  <Edit2 className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 </button>
               )}
             </div>
             
             {/* Encounter Info */}
-            <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm text-surface-500">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3 md:w-4 md:h-4" />
-                {formatDateTime(encounter.startAt)}
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 lg:gap-4 text-[10px] md:text-xs lg:text-sm text-surface-500">
+              <span className="flex items-center gap-0.5 md:gap-1">
+                <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">{formatDateTime(encounter.startAt)}</span>
+                <span className="sm:hidden">{formatDateTime(encounter.startAt).split(' ')[1]}</span>
               </span>
               {encounter.currentLocation && (
                 <>
                   <span className="text-surface-300">•</span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3 md:w-4 md:h-4" />
-                    {encounter.currentLocation}
+                  <span className="flex items-center gap-0.5 md:gap-1">
+                    <MapPin className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4" />
+                    <span className="truncate max-w-[80px] sm:max-w-none">{encounter.currentLocation}</span>
                   </span>
                 </>
               )}
               {encounter.createdBy && (
                 <>
-                  <span className="text-surface-300">•</span>
-                  <span className="flex items-center gap-1 text-primary-600">
-                    <Users className="w-3 h-3 md:w-4 md:h-4" />
-                    Created by {getUserName(encounter.createdBy)}
+                  <span className="text-surface-300 hidden sm:inline">•</span>
+                  <span className="hidden sm:flex items-center gap-0.5 md:gap-1 text-primary-600">
+                    <Users className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4" />
+                    <span className="truncate max-w-[100px] md:max-w-none">Created by {getUserName(encounter.createdBy)}</span>
                   </span>
                 </>
               )}
@@ -1293,18 +1294,18 @@ export default function EncounterDetailPage() {
               {/* Last Vitals Display */}
               {lastVitals && (
                 <>
-                  <span className="text-surface-400">|</span>
-                  <div className="flex items-center gap-1">
+                  <span className="text-surface-400 hidden sm:inline">|</span>
+                  <div className="flex items-center gap-0.5 md:gap-1 w-full sm:w-auto mt-1.5 sm:mt-0">
                     <button
                       onClick={() => setShowVitalsTrends(!showVitalsTrends)}
-                      className="flex items-center gap-1.5 hover:text-primary-600 transition-colors px-2 py-1 rounded-md hover:bg-primary-50"
+                      className="flex items-center gap-1 md:gap-1.5 hover:text-primary-600 transition-colors px-1.5 md:px-2 py-0.5 md:py-1 rounded-md hover:bg-primary-50 touch-manipulation"
                     >
-                      <Activity className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
-                      <span className="font-medium text-surface-700">{lastVitals.text}</span>
-                      <span className="text-[10px] text-surface-400">
+                      <Activity className="w-3 h-3 md:w-4 md:h-4 text-red-500 flex-shrink-0" />
+                      <span className="font-medium text-[10px] md:text-xs lg:text-sm text-surface-700 truncate">{lastVitals.text}</span>
+                      <span className="text-[9px] md:text-[10px] text-surface-400 flex-shrink-0 hidden sm:inline">
                         ({formatRelativeTime(lastVitals.eventAt)})
                       </span>
-                      <ChevronDown className={`w-3 h-3 transition-transform ${showVitalsTrends ? 'rotate-180' : ''}`} />
+                      <ChevronDown className={`w-2.5 h-2.5 md:w-3 md:h-3 transition-transform flex-shrink-0 ${showVitalsTrends ? 'rotate-180' : ''}`} />
                     </button>
                     <button
                       onClick={() => {
@@ -1365,7 +1366,7 @@ export default function EncounterDetailPage() {
         </div>
 
         {/* Right side - Action buttons - Compact on all screens */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2 justify-end">
           {/* Export buttons - always visible */}
           <EncounterExport 
             encounter={encounter} 
@@ -1412,22 +1413,22 @@ export default function EncounterDetailPage() {
 
       {/* Vitals Editor */}
       {isEditingVitals && isActive && (
-        <div className="p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg dark:from-red-900/20 dark:to-pink-900/20 dark:border-red-800">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Activity className="w-5 h-5 text-red-600" />
-              <h3 className="font-semibold text-red-900">Record Vital Signs</h3>
+        <div className="p-3 md:p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg dark:from-red-900/20 dark:to-pink-900/20 dark:border-red-800">
+          <div className="flex items-center justify-between mb-2 md:mb-3">
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <Activity className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
+              <h3 className="font-semibold text-sm md:text-base text-red-900">Record Vital Signs</h3>
             </div>
             <button
               onClick={() => setIsEditingVitals(false)}
               className="text-surface-400 hover:text-surface-600"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 md:gap-3">
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">
+              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
                 BP (mmHg)
               </label>
               <input
@@ -1435,11 +1436,11 @@ export default function EncounterDetailPage() {
                 value={vitalsInput.bp}
                 onChange={(e) => setVitalsInput({ ...vitalsInput, bp: e.target.value })}
                 placeholder="120/80"
-                className="w-full px-2 py-1.5 text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">
+              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
                 HR (bpm)
               </label>
               <input
@@ -1447,11 +1448,11 @@ export default function EncounterDetailPage() {
                 value={vitalsInput.hr}
                 onChange={(e) => setVitalsInput({ ...vitalsInput, hr: e.target.value })}
                 placeholder="75"
-                className="w-full px-2 py-1.5 text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">
+              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
                 RR (/min)
               </label>
               <input
@@ -1459,11 +1460,11 @@ export default function EncounterDetailPage() {
                 value={vitalsInput.rr}
                 onChange={(e) => setVitalsInput({ ...vitalsInput, rr: e.target.value })}
                 placeholder="16"
-                className="w-full px-2 py-1.5 text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">
+              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
                 Temp (°C)
               </label>
               <input
@@ -1471,11 +1472,11 @@ export default function EncounterDetailPage() {
                 value={vitalsInput.temp}
                 onChange={(e) => setVitalsInput({ ...vitalsInput, temp: e.target.value })}
                 placeholder="37.0"
-                className="w-full px-2 py-1.5 text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">
+              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
                 SpO2 (%)
               </label>
               <input
@@ -1483,15 +1484,16 @@ export default function EncounterDetailPage() {
                 value={vitalsInput.spo2}
                 onChange={(e) => setVitalsInput({ ...vitalsInput, spo2: e.target.value })}
                 placeholder="98"
-                className="w-full px-2 py-1.5 text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex justify-end gap-1.5 md:gap-2 mt-3 md:mt-4">
             <Button
               variant="secondary"
               size="sm"
               onClick={() => setIsEditingVitals(false)}
+              className="text-xs md:text-sm px-2 md:px-3"
             >
               Cancel
             </Button>
@@ -1499,7 +1501,7 @@ export default function EncounterDetailPage() {
               size="sm"
               onClick={handleSaveVitals}
               loading={isSavingVitals}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-xs md:text-sm px-2 md:px-3"
             >
               Save Vitals
             </Button>
@@ -1532,34 +1534,34 @@ export default function EncounterDetailPage() {
           .reverse(); // Oldest first
 
         return (
-          <div className="p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-red-600" />
-                <h3 className="font-semibold text-red-900">Vitals Trends</h3>
-                <span className="text-xs text-red-600">({vitalsData.length} recordings)</span>
+          <div className="p-3 md:p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-lg">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <Activity className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
+                <h3 className="font-semibold text-sm md:text-base text-red-900">Vitals Trends</h3>
+                <span className="text-[10px] md:text-xs text-red-600">({vitalsData.length} recordings)</span>
               </div>
               <button
                 onClick={() => setShowVitalsTrends(false)}
-                className="text-surface-400 hover:text-surface-600"
+                className="text-surface-400 hover:text-surface-600 touch-manipulation p-1"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             </div>
 
             {vitalsData.length === 0 ? (
-              <p className="text-sm text-surface-500 text-center py-8">No vitals recorded yet</p>
+              <p className="text-xs md:text-sm text-surface-500 text-center py-6 md:py-8">No vitals recorded yet</p>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {/* Timeline view of vitals */}
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   {vitalsData.map((vital, index) => (
-                    <div key={index} className="flex items-start gap-3 p-3 bg-white rounded-lg shadow-sm">
-                      <div className="flex-shrink-0 w-20 text-xs text-surface-500">
+                    <div key={index} className="flex items-start gap-2 md:gap-3 p-2 md:p-3 bg-white rounded-lg shadow-sm">
+                      <div className="flex-shrink-0 w-14 md:w-20 text-[10px] md:text-xs text-surface-500">
                         <div className="font-medium">{formatDateTime(vital.time).split(' ')[1]}</div>
-                        <div className="text-[10px]">{formatDateTime(vital.time).split(' ')[0]}</div>
+                        <div className="text-[9px] md:text-[10px]">{formatDateTime(vital.time).split(' ')[0]}</div>
                       </div>
-                      <div className="flex-1 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                      <div className="flex-1 grid grid-cols-2 sm:grid-cols-5 gap-1.5 md:gap-2 text-[10px] md:text-xs">
                         {vital.bp && (
                           <div className="flex items-center gap-1">
                             <span className="font-semibold text-blue-700">BP:</span>
@@ -1704,27 +1706,27 @@ export default function EncounterDetailPage() {
 
       {/* Diagnosis & Problems - Full Width Top Section - Collapsible */}
       <Card className="shadow-sm border-2 border-primary-100">
-        <CardHeader className="bg-gradient-to-r from-primary-50 to-white">
+        <CardHeader className="bg-gradient-to-r from-primary-50 to-white p-3 md:p-4">
           <button 
             onClick={() => toggleCard('diagnosis')}
             className="w-full flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity"
           >
-            <h2 className="section-title">
-              <ListChecks className="w-5 h-5 text-primary-600" />
+            <h2 className="section-title text-sm md:text-base">
+              <ListChecks className="w-4 h-4 md:w-5 md:h-5 text-primary-600" />
               Diagnosis & Problems
               {(dxForm.primaryDx || dxForm.problemListText) && (
                 <span className="text-xs text-primary-600 ml-2">●</span>
               )}
             </h2>
-            <ChevronDown className={`w-5 h-5 text-surface-500 transition-transform ${expandedCards.diagnosis ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 text-surface-500 transition-transform ${expandedCards.diagnosis ? 'rotate-180' : ''}`} />
           </button>
         </CardHeader>
         {expandedCards.diagnosis && (
-          <CardBody>
-            <form onSubmit={handleSaveDx} className="space-y-5">
+          <CardBody className="p-3 md:p-4">
+            <form onSubmit={handleSaveDx} className="space-y-3 md:space-y-5">
               {/* Primary Diagnosis */}
-              <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                <label className="block text-sm font-semibold text-red-900 mb-2">
+              <div className="p-3 md:p-4 bg-red-50 rounded-lg border border-red-200">
+                <label className="block text-xs md:text-sm font-semibold text-red-900 mb-2">
                   Primary / Final Diagnosis
                 </label>
                 <Textarea
@@ -1734,17 +1736,17 @@ export default function EncounterDetailPage() {
                   }
                   rows={3}
                   placeholder="e.g., Community-Acquired Pneumonia, Sepsis secondary to CAP"
-                  className="bg-white"
+                  className="bg-white text-sm"
                 />
               </div>
 
               {/* Problem List */}
-              <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+              <div className="p-3 md:p-4 bg-amber-50 rounded-lg border border-amber-200">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-semibold text-amber-900">
+                  <label className="block text-xs md:text-sm font-semibold text-amber-900">
                     Problem List
                   </label>
-                  <span className="text-xs text-amber-600">One per line</span>
+                  <span className="text-[10px] md:text-xs text-amber-600">One per line</span>
                 </div>
                 <Textarea
                   value={dxForm.problemListText}
@@ -1753,14 +1755,14 @@ export default function EncounterDetailPage() {
                   }
                   rows={5}
                   placeholder="Sepsis&#10;AKI Stage 2&#10;DM2 uncontrolled&#10;Hypertension"
-                  className="bg-white font-mono text-sm"
+                  className="bg-white font-mono text-xs md:text-sm"
                 />
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end pt-2">
                 <Button type="submit" size="sm" loading={isSavingDx}>
-                  <Save className="w-4 h-4" />
-                  Save
+                  <Save className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="text-xs md:text-sm">Save</span>
                 </Button>
               </div>
             </form>
@@ -1773,42 +1775,42 @@ export default function EncounterDetailPage() {
         <div className="lg:col-span-2 space-y-4 md:space-y-6">
           {/* Clinical Documentation - Collapsible */}
           <Card className="shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-white">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-white p-3 md:p-4">
               <button 
                 onClick={() => toggleCard('clinical')}
                 className="w-full flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity"
               >
-                <h2 className="section-title">
-                  <FileText className="w-5 h-5 text-blue-600" />
+                <h2 className="section-title text-sm md:text-base">
+                  <FileText className="w-4 h-4 md:w-5 md:h-5 text-blue-600" />
                   Clinical Documentation
                   {(notesForm.cc || notesForm.hpi || notesForm.ros || notesForm.physicalExam || notesForm.investigations || notesForm.summary) && (
                     <span className="text-xs text-blue-600 ml-2">●</span>
                   )}
                 </h2>
-                <ChevronDown className={`w-5 h-5 text-surface-500 transition-transform ${expandedCards.clinical ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 text-surface-500 transition-transform ${expandedCards.clinical ? 'rotate-180' : ''}`} />
               </button>
             </CardHeader>
             {expandedCards.clinical && (
-              <CardBody className="space-y-4">
-              <form onSubmit={handleSaveNotes} className="space-y-3">
+              <CardBody className="space-y-3 md:space-y-4 p-3 md:p-4">
+              <form onSubmit={handleSaveNotes} className="space-y-2 md:space-y-3">
                 {/* History Section - Collapsible */}
                 <div className="border border-blue-200 rounded-lg overflow-hidden">
                   <button
                     type="button"
                     onClick={() => toggleSection('history')}
-                    className="w-full p-3 bg-gradient-to-r from-blue-50 to-white hover:from-blue-100 hover:to-blue-50 transition-colors flex items-center justify-between"
+                    className="w-full p-2.5 md:p-3 bg-gradient-to-r from-blue-50 to-white hover:from-blue-100 hover:to-blue-50 transition-colors flex items-center justify-between"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="w-1 h-5 bg-blue-500 rounded"></span>
-                      <h3 className="text-sm font-semibold text-surface-700">History</h3>
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                      <span className="w-1 h-4 md:h-5 bg-blue-500 rounded"></span>
+                      <h3 className="text-xs md:text-sm font-semibold text-surface-700">History</h3>
                       {(notesForm.cc || notesForm.hpi || notesForm.ros) && (
                         <span className="text-xs text-blue-600">●</span>
                       )}
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-surface-500 transition-transform ${expandedSections.history ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-3.5 h-3.5 md:w-4 md:h-4 text-surface-500 transition-transform ${expandedSections.history ? 'rotate-180' : ''}`} />
                   </button>
                   {expandedSections.history && (
-                    <div className="p-4 space-y-3 bg-surface-50">
+                    <div className="p-3 md:p-4 space-y-2.5 md:space-y-3 bg-surface-50">
                       <Textarea
                         label="Chief Complaint"
                         value={notesForm.cc}
@@ -1817,6 +1819,7 @@ export default function EncounterDetailPage() {
                         }
                         rows={2}
                         placeholder="Patient presents with..."
+                        className="text-sm"
                       />
                       <Textarea
                         label="History of Present Illness"
@@ -1826,6 +1829,7 @@ export default function EncounterDetailPage() {
                         }
                         rows={4}
                         placeholder="Detailed history..."
+                        className="text-sm"
                       />
                       <Textarea
                         label="Review of Systems"
@@ -1835,6 +1839,7 @@ export default function EncounterDetailPage() {
                         }
                         rows={3}
                         placeholder="Constitutional, HEENT, CV, Resp..."
+                        className="text-sm"
                       />
                     </div>
                   )}
@@ -1845,19 +1850,19 @@ export default function EncounterDetailPage() {
                   <button
                     type="button"
                     onClick={() => toggleSection('examination')}
-                    className="w-full p-3 bg-gradient-to-r from-green-50 to-white hover:from-green-100 hover:to-green-50 transition-colors flex items-center justify-between"
+                    className="w-full p-2.5 md:p-3 bg-gradient-to-r from-green-50 to-white hover:from-green-100 hover:to-green-50 transition-colors flex items-center justify-between"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="w-1 h-5 bg-green-500 rounded"></span>
-                      <h3 className="text-sm font-semibold text-surface-700">Examination</h3>
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                      <span className="w-1 h-4 md:h-5 bg-green-500 rounded"></span>
+                      <h3 className="text-xs md:text-sm font-semibold text-surface-700">Examination</h3>
                       {notesForm.physicalExam && (
                         <span className="text-xs text-green-600">●</span>
                       )}
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-surface-500 transition-transform ${expandedSections.examination ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-3.5 h-3.5 md:w-4 md:h-4 text-surface-500 transition-transform ${expandedSections.examination ? 'rotate-180' : ''}`} />
                   </button>
                   {expandedSections.examination && (
-                    <div className="p-4 space-y-3 bg-green-50">
+                    <div className="p-3 md:p-4 space-y-2.5 md:space-y-3 bg-green-50">
                       <Textarea
                         label="Physical Examination"
                         value={notesForm.physicalExam}
@@ -1866,6 +1871,7 @@ export default function EncounterDetailPage() {
                         }
                         rows={4}
                         placeholder="General: Alert, oriented&#10;HEENT: Normal&#10;CV: RRR, no murmurs&#10;Resp: Clear bilateral..."
+                        className="text-sm"
                       />
                     </div>
                   )}
@@ -1876,19 +1882,19 @@ export default function EncounterDetailPage() {
                   <button
                     type="button"
                     onClick={() => toggleSection('investigations')}
-                    className="w-full p-3 bg-gradient-to-r from-purple-50 to-white hover:from-purple-100 hover:to-purple-50 transition-colors flex items-center justify-between"
+                    className="w-full p-2.5 md:p-3 bg-gradient-to-r from-purple-50 to-white hover:from-purple-100 hover:to-purple-50 transition-colors flex items-center justify-between"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="w-1 h-5 bg-purple-500 rounded"></span>
-                      <h3 className="text-sm font-semibold text-surface-700">Investigations & Images</h3>
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                      <span className="w-1 h-4 md:h-5 bg-purple-500 rounded"></span>
+                      <h3 className="text-xs md:text-sm font-semibold text-surface-700">Investigations & Images</h3>
                       {(notesForm.investigations || files.filter(f => !f.actionId).length > 0) && (
                         <span className="text-xs text-purple-600">●</span>
                       )}
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-surface-500 transition-transform ${expandedSections.investigations ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-3.5 h-3.5 md:w-4 md:h-4 text-surface-500 transition-transform ${expandedSections.investigations ? 'rotate-180' : ''}`} />
                   </button>
                   {expandedSections.investigations && (
-                    <div className="p-4 space-y-3 bg-purple-50">
+                    <div className="p-3 md:p-4 space-y-2.5 md:space-y-3 bg-purple-50">
                       <Textarea
                         label="Lab Results & Imaging"
                         value={notesForm.investigations}
@@ -1902,8 +1908,8 @@ export default function EncounterDetailPage() {
                   {/* Investigation Images */}
                   {files.filter(f => !f.actionId).length > 0 && (
                     <div className="mt-2">
-                      <p className="text-xs font-medium text-surface-600 mb-2">Attached Images:</p>
-                      <div className="flex flex-wrap gap-2">
+                      <p className="text-[10px] md:text-xs font-medium text-surface-600 mb-1.5 md:mb-2">Attached Images:</p>
+                      <div className="flex flex-wrap gap-1.5 md:gap-2">
                         {files.filter(f => !f.actionId).map((file) => (
                           <div key={file.id} className="relative group">
                             {file.fileType.startsWith("image/") ? (
@@ -1911,7 +1917,7 @@ export default function EncounterDetailPage() {
                                 <img
                                   src={file.fileUrl}
                                   alt={file.fileName}
-                                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg cursor-pointer hover:ring-2 hover:ring-purple-500 shadow-sm"
+                                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-cover rounded-lg cursor-pointer hover:ring-2 hover:ring-purple-500 shadow-sm"
                                   onClick={() => setViewingFile(file)}
                                   loading="lazy"
                                 />
@@ -1921,14 +1927,14 @@ export default function EncounterDetailPage() {
                                     e.stopPropagation();
                                     handleDeleteFile(file);
                                   }}
-                                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                                  className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                                 >
-                                  <X className="w-3 h-3" />
+                                  <X className="w-2 h-2 md:w-3 md:h-3" />
                                 </button>
                               </>
                             ) : (
-                              <div className="w-20 h-20 bg-surface-100 rounded-lg flex items-center justify-center">
-                                <Paperclip className="w-4 h-4 text-surface-500" />
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-surface-100 rounded-lg flex items-center justify-center">
+                                <Paperclip className="w-3 h-3 md:w-4 md:h-4 text-surface-500" />
                               </div>
                             )}
                           </div>
@@ -2068,19 +2074,19 @@ export default function EncounterDetailPage() {
                   <button
                     type="button"
                     onClick={() => toggleSection('plan')}
-                    className="w-full p-3 bg-gradient-to-r from-amber-50 to-white hover:from-amber-100 hover:to-amber-50 transition-colors flex items-center justify-between"
+                    className="w-full p-2.5 md:p-3 bg-gradient-to-r from-amber-50 to-white hover:from-amber-100 hover:to-amber-50 transition-colors flex items-center justify-between"
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="w-1 h-5 bg-amber-500 rounded"></span>
-                      <h3 className="text-sm font-semibold text-surface-700">Assessment & Plan</h3>
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                      <span className="w-1 h-4 md:h-5 bg-amber-500 rounded"></span>
+                      <h3 className="text-xs md:text-sm font-semibold text-surface-700">Assessment & Plan</h3>
                       {notesForm.summary && (
                         <span className="text-xs text-amber-600">●</span>
                       )}
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-surface-500 transition-transform ${expandedSections.plan ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-3.5 h-3.5 md:w-4 md:h-4 text-surface-500 transition-transform ${expandedSections.plan ? 'rotate-180' : ''}`} />
                   </button>
                   {expandedSections.plan && (
-                    <div className="p-4 space-y-3 bg-amber-50">
+                    <div className="p-3 md:p-4 space-y-2.5 md:space-y-3 bg-amber-50">
                       <Textarea
                         label="Summary / Plan"
                         value={notesForm.summary}
@@ -2088,15 +2094,16 @@ export default function EncounterDetailPage() {
                           setNotesForm({ ...notesForm, summary: e.target.value })
                         }
                         rows={4}
+                        className="text-sm"
                         placeholder="Linked statement and plan..."
                       />
                     </div>
                   )}
                 </div>
 
-                <div className="flex justify-end pt-2">
-                  <Button type="submit" size="sm" loading={isSavingNotes} className="shadow-sm">
-                    <Save className="w-4 h-4" />
+                <div className="flex justify-end pt-2 md:pt-3">
+                  <Button type="submit" size="sm" loading={isSavingNotes} className="shadow-sm text-xs md:text-sm px-3 md:px-4">
+                    <Save className="w-3 h-3 md:w-4 md:h-4" />
                     Save All Notes
                   </Button>
                 </div>
@@ -2107,28 +2114,28 @@ export default function EncounterDetailPage() {
 
           {/* Timeline - Now Below Clinical Notes - Collapsible */}
           <Card className="shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-white">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-white p-3 md:p-4">
               <button 
                 onClick={() => toggleCard('timeline')}
                 className="w-full flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity"
               >
-                <h2 className="section-title">
-                  <Stethoscope className="w-5 h-5 text-green-600" />
+                <h2 className="section-title text-sm md:text-base">
+                  <Stethoscope className="w-4 h-4 md:w-5 md:h-5 text-green-600" />
                   Timeline
                   {actions.length > 0 && (
                     <span className="text-xs text-surface-500 ml-2">({actions.length})</span>
                   )}
                 </h2>
-                <ChevronDown className={`w-5 h-5 text-surface-500 transition-transform ${expandedCards.timeline ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 text-surface-500 transition-transform ${expandedCards.timeline ? 'rotate-180' : ''}`} />
               </button>
             </CardHeader>
             {expandedCards.timeline && (
-              <CardBody>
+              <CardBody className="p-3 md:p-4">
               {/* Add Action Form - Redesigned */}
-              <form onSubmit={handleAddAction} className="mb-6">
-                <div className="border border-surface-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
+              <form onSubmit={handleAddAction} className="mb-4 md:mb-6">
+                <div className="border border-surface-200 rounded-lg md:rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent">
                   {/* Type selector and options row */}
-                  <div className="flex items-center gap-2 px-3 py-2 bg-surface-50 border-b border-surface-200">
+                  <div className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 bg-surface-50 border-b border-surface-200 flex-wrap">
                     <Select
                       value={actionForm.type}
                       onChange={(e) => {
@@ -2143,41 +2150,41 @@ export default function EncounterDetailPage() {
                         }
                       }}
                       options={ACTION_TYPES}
-                      className="!py-1 !px-2 !text-xs !border-0 !bg-white !shadow-sm !rounded-md w-auto"
+                      className="!py-0.5 md:!py-1 !px-1.5 md:!px-2 !text-[10px] md:!text-xs !border-0 !bg-white !shadow-sm !rounded-md w-auto"
                     />
                     
                     {/* Time toggle button */}
                     <button
                       type="button"
                       onClick={() => setShowTimeInput(!showTimeInput)}
-                      className={`flex items-center gap-1 px-2 py-1 text-xs rounded-md transition-colors ${
+                      className={`flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md transition-colors ${
                         showTimeInput || actionForm.eventAt
                           ? "bg-primary-100 text-primary-700"
                           : "bg-white text-surface-600 hover:bg-surface-100"
                       }`}
                     >
-                      <Calendar className="w-3 h-3" />
-                      {actionForm.eventAt ? "Custom time" : "Now"}
-                      <ChevronDown className="w-3 h-3" />
+                      <Calendar className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                      <span className="hidden sm:inline">{actionForm.eventAt ? "Custom time" : "Now"}</span>
+                      <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3" />
                     </button>
 
                     {/* File upload buttons */}
                     <button
                       type="button"
                       onClick={() => cameraInputRef.current?.click()}
-                      className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
+                      className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
                       title="Take photo with camera"
                     >
-                      <Camera className="w-3 h-3" />
+                      <Camera className="w-2.5 h-2.5 md:w-3 md:h-3" />
                       <span className="hidden sm:inline">Camera</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => galleryInputRef.current?.click()}
-                      className="flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
+                      className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
                       title="Select from gallery. Max 200KB per file."
                     >
-                      <Paperclip className="w-3 h-3" />
+                      <Paperclip className="w-2.5 h-2.5 md:w-3 md:h-3" />
                       <span className="hidden sm:inline">Files</span>
                     </button>
                     {/* Camera input - opens camera directly */}
@@ -2212,23 +2219,23 @@ export default function EncounterDetailPage() {
 
                   {/* Time input - collapsible */}
                   {showTimeInput && (
-                    <div className="px-3 py-2 bg-surface-50 border-b border-surface-200">
+                    <div className="px-2 md:px-3 py-1.5 md:py-2 bg-surface-50 border-b border-surface-200">
                       <Input
                         type="datetime-local"
                         value={actionForm.eventAt}
                         onChange={(e) =>
                           setActionForm({ ...actionForm, eventAt: e.target.value })
                         }
-                        className="!text-sm max-w-xs"
+                        className="!text-xs md:!text-sm max-w-xs"
                       />
                     </div>
                   )}
 
                   {/* Main text area or transfer input */}
                   {actionForm.type === "TRANSFER" ? (
-                    <div className="p-3">
-                      <div className="flex items-center gap-2 text-sm text-surface-600 mb-2">
-                        <ArrowRightLeft className="w-4 h-4" />
+                    <div className="p-2 md:p-3">
+                      <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-surface-600 mb-1.5 md:mb-2">
+                        <ArrowRightLeft className="w-3 h-3 md:w-4 md:h-4" />
                         <span>From: {encounter.currentLocation || "Unknown"}</span>
                       </div>
                       <Input
@@ -2237,7 +2244,7 @@ export default function EncounterDetailPage() {
                           setActionForm({ ...actionForm, transferTo: e.target.value })
                         }
                         placeholder="Transfer to (e.g., ICU, Ward A, OR)..."
-                        className="!border-0 !p-0 !text-base !shadow-none focus:!ring-0"
+                        className="!border-0 !p-0 !text-sm md:!text-base !shadow-none focus:!ring-0"
                       />
                     </div>
                   ) : (
@@ -2252,14 +2259,14 @@ export default function EncounterDetailPage() {
                           : "Add a note, treatment, investigation, exam finding..."
                       }
                       rows={3}
-                      className="!border-0 !rounded-none !text-base focus:!ring-0 resize-none"
+                      className="!border-0 !rounded-none !text-sm md:!text-base focus:!ring-0 resize-none"
                     />
                   )}
 
                   {/* Pending files preview */}
                   {pendingFiles.length > 0 && (
-                    <div className="px-3 py-2 border-t border-surface-200 bg-surface-50">
-                      <div className="flex flex-wrap gap-2">
+                    <div className="px-2 md:px-3 py-1.5 md:py-2 border-t border-surface-200 bg-surface-50">
+                      <div className="flex flex-wrap gap-1.5 md:gap-2">
                         {pendingFiles.map((file, index) => (
                           <div
                             key={index}
@@ -2310,7 +2317,7 @@ export default function EncounterDetailPage() {
                   )}
 
                   {/* Action buttons */}
-                  <div className="flex items-center justify-between px-3 py-2 bg-surface-50 border-t border-surface-200">
+                  <div className="flex items-center justify-between px-2 md:px-3 py-1.5 md:py-2 bg-surface-50 border-t border-surface-200">
                     {editingAction ? (
                       <Button
                         type="button"
@@ -2321,6 +2328,7 @@ export default function EncounterDetailPage() {
                           setActionForm({ type: "NOTE", text: "", eventAt: "", transferTo: "" });
                           setShowTimeInput(false);
                         }}
+                        className="text-xs md:text-sm px-2 md:px-3"
                       >
                         Cancel Edit
                       </Button>
@@ -2336,8 +2344,9 @@ export default function EncounterDetailPage() {
                           ? !actionForm.transferTo.trim()
                           : !actionForm.text.trim() && pendingFiles.length === 0
                       }
+                      className="text-xs md:text-sm px-2 md:px-3"
                     >
-                      <Send className="w-4 h-4" />
+                      <Send className="w-3 h-3 md:w-4 md:h-4" />
                       {editingAction ? "Update" : "Add"}
                     </Button>
                   </div>
@@ -2346,62 +2355,62 @@ export default function EncounterDetailPage() {
 
               {/* Actions List */}
               {actions.length === 0 ? (
-                <div className="text-center py-8">
-                  <Activity className="w-12 h-12 text-surface-200 mx-auto mb-3" />
-                  <p className="text-surface-500">No timeline entries yet</p>
+                <div className="text-center py-6 md:py-8">
+                  <Activity className="w-10 h-10 md:w-12 md:h-12 text-surface-200 mx-auto mb-2 md:mb-3" />
+                  <p className="text-sm md:text-base text-surface-500">No timeline entries yet</p>
                   <p className="text-xs text-surface-400 mt-1">Add your first action above</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   {actions.map((action) => {
                     const actionFiles = getFilesForAction(action.id);
                     console.log(`Action ${action.id} files:`, actionFiles);
                     return (
                       <div
                         key={action.id}
-                        className="p-3 md:p-4 rounded-xl bg-surface-50 hover:bg-surface-100 transition-colors group"
+                        className="p-2.5 md:p-3 lg:p-4 rounded-lg md:rounded-xl bg-surface-50 hover:bg-surface-100 transition-colors group border border-transparent hover:border-surface-200"
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2 md:gap-3">
                           <span
-                            className={`badge text-[10px] flex-shrink-0 ${getActionTypeColor(
+                            className={`badge text-[9px] md:text-[10px] flex-shrink-0 px-1.5 md:px-2 py-0.5 md:py-1 ${getActionTypeColor(
                               action.type
                             )}`}
                           >
                             {getActionTypeLabel(action.type)}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm md:text-base text-surface-900 whitespace-pre-wrap">
+                            <p className="text-xs md:text-sm lg:text-base text-surface-900 whitespace-pre-wrap leading-relaxed">
                               {action.text}
                             </p>
                             
                             {/* Attached files */}
                             {actionFiles.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mt-3">
+                              <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2 md:mt-3">
                                 {actionFiles.map((file) => (
                                   <button
                                     key={file.id}
                                     onClick={() => setViewingFile(file)}
-                                    className="group relative overflow-hidden rounded-lg hover:ring-2 hover:ring-primary-500 transition-all"
+                                    className="group relative overflow-hidden rounded-md md:rounded-lg hover:ring-2 hover:ring-primary-500 transition-all shadow-sm"
                                   >
                                     {file.fileType.startsWith("image/") ? (
                                       <div className="relative">
                                         <img
                                           src={file.fileUrl}
                                           alt={file.fileName}
-                                          className="w-20 h-20 sm:w-24 sm:h-24 object-cover"
+                                          className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-cover"
                                           loading="lazy"
                                         />
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1">
-                                          <p className="text-[10px] text-white truncate">
+                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-0.5 md:p-1">
+                                          <p className="text-[8px] md:text-[10px] text-white truncate px-0.5">
                                             {file.fileName}
                                           </p>
                                         </div>
                                       </div>
                                     ) : (
-                                      <div className="w-20 h-20 sm:w-24 sm:h-24 bg-surface-100 flex flex-col items-center justify-center gap-1 hover:bg-surface-200">
-                                        <Paperclip className="w-6 h-6 text-surface-500" />
-                                        <span className="text-[10px] text-surface-600 truncate max-w-[70px] px-1">
+                                      <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-surface-100 flex flex-col items-center justify-center gap-0.5 md:gap-1 hover:bg-surface-200">
+                                        <Paperclip className="w-4 h-4 md:w-6 md:h-6 text-surface-500" />
+                                        <span className="text-[8px] md:text-[10px] text-surface-600 truncate max-w-[55px] md:max-w-[70px] px-1">
                                           {file.fileName}
                                         </span>
                                       </div>
@@ -2412,60 +2421,61 @@ export default function EncounterDetailPage() {
                             )}
                             
                             {/* Enhanced metadata */}
-                            <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-surface-500">
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {formatDateTime(action.eventAt)}
+                            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mt-2 md:mt-3 text-[10px] md:text-xs text-surface-500">
+                              <span className="flex items-center gap-0.5 md:gap-1">
+                                <Clock className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                                <span className="hidden sm:inline">{formatDateTime(action.eventAt)}</span>
+                                <span className="sm:hidden">{formatDateTime(action.eventAt).split(' ')[1]}</span>
                               </span>
-                              <span className="text-surface-300">•</span>
-                              <span className="font-medium text-primary-600">
+                              <span className="text-surface-300 hidden sm:inline">•</span>
+                              <span className="font-medium text-primary-600 text-[9px] md:text-[10px]">
                                 {formatRelativeTime(action.eventAt)}
                               </span>
                               {action.createdBy && (
                                 <>
                                   <span className="text-surface-300">•</span>
-                                  <span className="flex items-center gap-1 text-surface-600">
-                                    <User className="w-3 h-3" />
-                                    {getUserName(action.createdBy)}
+                                  <span className="flex items-center gap-0.5 md:gap-1 text-surface-600">
+                                    <User className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                                    <span className="hidden sm:inline">{getUserName(action.createdBy)}</span>
                                   </span>
                                 </>
                               )}
                               {action.type === "TRANSFER" && (
                                 <>
-                                  <span className="text-surface-300">•</span>
-                                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[10px] font-semibold">
-                                    <MapPin className="w-3 h-3" />
-                                    TRANSFER
+                                  <span className="text-surface-300 hidden sm:inline">•</span>
+                                  <span className="flex items-center gap-0.5 md:gap-1 px-1 md:px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[8px] md:text-[10px] font-semibold">
+                                    <MapPin className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                                    <span className="hidden sm:inline">TRANSFER</span>
                                   </span>
                                 </>
                               )}
                               {action.type === "VITALS" && (
                                 <>
-                                  <span className="text-surface-300">•</span>
-                                  <span className="flex items-center gap-1 px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-semibold">
-                                    <Activity className="w-3 h-3" />
-                                    VITAL SIGNS
+                                  <span className="text-surface-300 hidden sm:inline">•</span>
+                                  <span className="flex items-center gap-0.5 md:gap-1 px-1 md:px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[8px] md:text-[10px] font-semibold">
+                                    <Activity className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                                    <span className="hidden sm:inline">VITAL SIGNS</span>
                                   </span>
                                 </>
                               )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex flex-col sm:flex-row items-center gap-0.5 md:gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => startEditAction(action)}
-                              className="!p-1"
+                              className="!p-1 md:!p-1.5 touch-manipulation"
                             >
-                              <Edit2 className="w-3 h-3" />
+                              <Edit2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteAction(action)}
-                              className="!p-1 text-red-600 hover:text-red-700"
+                              className="!p-1 md:!p-1.5 text-red-600 hover:text-red-700 touch-manipulation"
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
                             </Button>
                           </div>
                         </div>
@@ -2482,21 +2492,21 @@ export default function EncounterDetailPage() {
         {/* Right Column - Meds & Files */}
         <div className="space-y-4 md:space-y-6">
           {/* Medications - Collapsible */}
-          <Card className="shadow-sm sticky top-4">
-            <CardHeader className="bg-gradient-to-r from-pink-50 to-white">
-              <div className="flex items-center justify-between">
+          <Card className="shadow-sm lg:sticky lg:top-4">
+            <CardHeader className="bg-gradient-to-r from-pink-50 to-white p-3 md:p-4">
+              <div className="flex items-center justify-between gap-2">
                 <button
                   onClick={() => toggleCard('medications')}
-                  className="flex items-center gap-2 flex-1 text-left"
+                  className="flex items-center gap-1.5 md:gap-2 flex-1 text-left min-w-0"
                 >
-                  <h2 className="section-title">
-                    <Pill className="w-5 h-5 text-pink-600" />
+                  <h2 className="section-title text-sm md:text-base">
+                    <Pill className="w-4 h-4 md:w-5 md:h-5 text-pink-600" />
                     Medications
                     {medications.length > 0 && (
-                      <span className="text-xs text-surface-500 ml-2">({medications.length})</span>
+                      <span className="text-xs text-surface-500 ml-1 md:ml-2">({medications.length})</span>
                     )}
                   </h2>
-                  <ChevronDown className={`w-4 h-4 text-surface-500 transition-transform ${expandedCards.medications ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 md:w-4 md:h-4 text-surface-500 transition-transform flex-shrink-0 ${expandedCards.medications ? 'rotate-180' : ''}`} />
                 </button>
                 <Button
                   size="sm"
@@ -2514,9 +2524,10 @@ export default function EncounterDetailPage() {
                     setIsMedModalOpen(true);
                   }}
                   disabled={!isActive}
+                  className="px-2 md:px-3"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Add</span>
+                  <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline text-xs md:text-sm">Add</span>
                 </Button>
               </div>
             </CardHeader>
@@ -2524,11 +2535,11 @@ export default function EncounterDetailPage() {
               <CardBody className="p-0">
               {/* Active Meds */}
               {activeMeds.length > 0 && (
-                <div className="p-3 md:p-4 border-b border-surface-100">
-                  <h3 className="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-3">
+                <div className="p-2.5 md:p-3 lg:p-4 border-b border-surface-100">
+                  <h3 className="text-[10px] md:text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2 md:mb-3">
                     Active ({activeMeds.length})
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 md:space-y-2">
                     {activeMeds.map((med, idx) => {
                       const colors = [
                         'bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200',
@@ -2542,27 +2553,27 @@ export default function EncounterDetailPage() {
                       return (
                         <div
                           key={med.id}
-                          className={`flex items-center justify-between p-3 rounded-lg ${colorClass} group hover:shadow-md transition-all`}
+                          className={`flex items-center justify-between p-2 md:p-2.5 lg:p-3 rounded-lg ${colorClass} group hover:shadow-md transition-all`}
                         >
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <Pill className="w-4 h-4 text-primary-600 flex-shrink-0" />
-                              <p className="font-semibold text-sm text-surface-900">
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <Pill className="w-3 h-3 md:w-4 md:h-4 text-primary-600 flex-shrink-0" />
+                              <p className="font-semibold text-xs md:text-sm text-surface-900">
                                 {med.name}
                               </p>
                             </div>
-                            <p className="text-xs text-surface-700 mt-1 ml-6 font-medium">
+                            <p className="text-[10px] md:text-xs text-surface-700 mt-0.5 md:mt-1 ml-4 md:ml-6 font-medium">
                               {[med.dose, med.route, med.frequency]
                                 .filter(Boolean)
                                 .join(" • ")}
                             </p>
                             {med.indication && (
-                              <p className="text-xs text-surface-600 mt-1 ml-6">
-                                ➜ {med.indication}
+                              <p className="text-[10px] md:text-xs text-surface-600 mt-0.5 md:mt-1 ml-4 md:ml-6 leading-snug">
+                                <span className="text-primary-500">➜</span> {med.indication}
                               </p>
                             )}
                           </div>
-                          <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                          <div className="flex flex-col sm:flex-row items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -2579,26 +2590,26 @@ export default function EncounterDetailPage() {
                                 setIsMedModalOpen(true);
                               }}
                               disabled={!isActive}
-                              className="!p-1 text-blue-600"
+                              className="!p-1 md:!p-1.5 text-blue-600 touch-manipulation"
                             >
-                              <Edit2 className="w-3 h-3" />
+                              <Edit2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleStopMedication(med)}
                               disabled={!isActive}
-                              className="!p-1 text-amber-600"
+                              className="!p-1 md:!p-1.5 text-amber-600 touch-manipulation"
                             >
-                              <Square className="w-3 h-3" />
+                              <Square className="w-3 h-3 md:w-3.5 md:h-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteMedication(med)}
-                              className="!p-1 text-red-600"
+                              className="!p-1 md:!p-1.5 text-red-600 touch-manipulation"
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
                             </Button>
                           </div>
                         </div>
@@ -2610,31 +2621,31 @@ export default function EncounterDetailPage() {
 
               {/* Stopped Meds */}
               {stoppedMeds.length > 0 && (
-                <div className="p-3 md:p-4">
-                  <h3 className="text-xs font-semibold text-surface-500 uppercase tracking-wider mb-3">
+                <div className="p-2.5 md:p-3 lg:p-4">
+                  <h3 className="text-[10px] md:text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2 md:mb-3">
                     Stopped ({stoppedMeds.length})
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5 md:space-y-2">
                     {stoppedMeds.map((med) => (
                       <div
                         key={med.id}
-                        className="flex items-center justify-between p-2 rounded-lg bg-surface-50 group"
+                        className="flex items-center justify-between p-1.5 md:p-2 rounded-lg bg-surface-50 group border border-surface-100"
                       >
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm text-surface-500 line-through">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-xs md:text-sm text-surface-500 line-through">
                             {med.name}
                           </p>
-                          <p className="text-xs text-surface-400">
-                            {formatDateTime(med.startAt)} → {formatDateTime(med.stopAt)}
+                          <p className="text-[9px] md:text-xs text-surface-400 mt-0.5">
+                            {formatDateTime(med.startAt).split(' ')[1]} → {formatDateTime(med.stopAt).split(' ')[1]}
                           </p>
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteMedication(med)}
-                          className="!p-1 text-red-600 sm:opacity-0 sm:group-hover:opacity-100"
+                          className="!p-1 md:!p-1.5 text-red-600 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation flex-shrink-0"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
                         </Button>
                       </div>
                     ))}
@@ -2643,9 +2654,10 @@ export default function EncounterDetailPage() {
               )}
 
               {medications.length === 0 && (
-                <div className="p-6 text-center">
-                  <Play className="w-8 h-8 text-surface-300 mx-auto mb-2" />
-                  <p className="text-surface-500 text-sm">No medications yet</p>
+                <div className="p-5 md:p-6 text-center">
+                  <Play className="w-7 h-7 md:w-8 md:h-8 text-surface-300 mx-auto mb-2" />
+                  <p className="text-surface-500 text-xs md:text-sm">No medications yet</p>
+                  <p className="text-surface-400 text-[10px] md:text-xs mt-1">Click Add to start prescribing</p>
                 </div>
               )}
             </CardBody>
