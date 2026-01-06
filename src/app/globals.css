@@ -148,15 +148,6 @@ body {
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
   }
-  
-  /* Ensure header stays fixed in PWA */
-  header {
-    position: fixed !important;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    will-change: transform;
-    transform: translateZ(0);
-  }
 }
 
 /* Safe area insets for notched devices (iPhone X+) */
