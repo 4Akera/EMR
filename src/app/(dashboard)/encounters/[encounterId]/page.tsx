@@ -78,6 +78,77 @@ const ACTION_TYPES = [
   { value: "TRANSFER", label: "🚑 Transfer" },
 ];
 
+// Common drugs database with typical doses, routes, and frequencies
+const COMMON_DRUGS = [
+  // Antibiotics
+  { name: "Ceftriaxone", dose: "1-2 g", route: "IV", frequency: "q24h", category: "Antibiotic" },
+  { name: "Cefuroxime", dose: "750 mg-1.5 g", route: "IV", frequency: "q8h", category: "Antibiotic" },
+  { name: "Amoxicillin", dose: "500 mg-1 g", route: "PO", frequency: "q8h", category: "Antibiotic" },
+  { name: "Amoxicillin-Clavulanate", dose: "625 mg-1 g", route: "PO", frequency: "q8-12h", category: "Antibiotic" },
+  { name: "Azithromycin", dose: "500 mg", route: "PO", frequency: "q24h", category: "Antibiotic" },
+  { name: "Ciprofloxacin", dose: "500-750 mg", route: "PO", frequency: "q12h", category: "Antibiotic" },
+  { name: "Levofloxacin", dose: "500-750 mg", route: "PO/IV", frequency: "q24h", category: "Antibiotic" },
+  { name: "Metronidazole", dose: "500 mg", route: "PO/IV", frequency: "q8h", category: "Antibiotic" },
+  { name: "Vancomycin", dose: "15 mg/kg", route: "IV", frequency: "q12h", category: "Antibiotic" },
+  { name: "Meropenem", dose: "1 g", route: "IV", frequency: "q8h", category: "Antibiotic" },
+  { name: "Piperacillin-Tazobactam", dose: "4.5 g", route: "IV", frequency: "q6-8h", category: "Antibiotic" },
+  
+  // Analgesics
+  { name: "Paracetamol", dose: "500 mg-1 g", route: "PO/IV", frequency: "q6h PRN", category: "Analgesic" },
+  { name: "Ibuprofen", dose: "400-600 mg", route: "PO", frequency: "q8h PRN", category: "Analgesic" },
+  { name: "Diclofenac", dose: "50 mg", route: "PO", frequency: "q8h PRN", category: "Analgesic" },
+  { name: "Tramadol", dose: "50-100 mg", route: "PO/IV", frequency: "q6h PRN", category: "Analgesic" },
+  { name: "Morphine", dose: "5-10 mg", route: "IV/SC", frequency: "q4h PRN", category: "Analgesic" },
+  { name: "Fentanyl", dose: "25-100 mcg", route: "IV", frequency: "PRN", category: "Analgesic" },
+  
+  // Cardiovascular
+  { name: "Aspirin", dose: "75-100 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Clopidogrel", dose: "75 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Atorvastatin", dose: "20-80 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Amlodipine", dose: "5-10 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Bisoprolol", dose: "2.5-10 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Enalapril", dose: "5-20 mg", route: "PO", frequency: "q12-24h", category: "Cardiovascular" },
+  { name: "Furosemide", dose: "20-40 mg", route: "PO/IV", frequency: "q12-24h", category: "Cardiovascular" },
+  { name: "Spironolactone", dose: "25-50 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Digoxin", dose: "125-250 mcg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Heparin", dose: "5000 units", route: "SC", frequency: "q8-12h", category: "Cardiovascular" },
+  { name: "Enoxaparin", dose: "40 mg", route: "SC", frequency: "q24h", category: "Cardiovascular" },
+  
+  // GI
+  { name: "Omeprazole", dose: "20-40 mg", route: "PO/IV", frequency: "q24h", category: "GI" },
+  { name: "Pantoprazole", dose: "40 mg", route: "PO/IV", frequency: "q24h", category: "GI" },
+  { name: "Ranitidine", dose: "150 mg", route: "PO", frequency: "q12h", category: "GI" },
+  { name: "Ondansetron", dose: "4-8 mg", route: "PO/IV", frequency: "q8h PRN", category: "GI" },
+  { name: "Metoclopramide", dose: "10 mg", route: "PO/IV", frequency: "q8h PRN", category: "GI" },
+  { name: "Lactulose", dose: "15-30 mL", route: "PO", frequency: "q8-12h", category: "GI" },
+  
+  // Respiratory
+  { name: "Salbutamol", dose: "2.5-5 mg", route: "Nebulizer", frequency: "q6h PRN", category: "Respiratory" },
+  { name: "Ipratropium", dose: "500 mcg", route: "Nebulizer", frequency: "q6h", category: "Respiratory" },
+  { name: "Prednisolone", dose: "30-60 mg", route: "PO", frequency: "q24h", category: "Respiratory" },
+  { name: "Hydrocortisone", dose: "100 mg", route: "IV", frequency: "q6h", category: "Respiratory" },
+  { name: "Dexamethasone", dose: "4-8 mg", route: "PO/IV", frequency: "q24h", category: "Respiratory" },
+  
+  // Diabetes
+  { name: "Insulin Regular", dose: "4-10 units", route: "SC", frequency: "AC/PRN", category: "Diabetes" },
+  { name: "Insulin NPH", dose: "10-20 units", route: "SC", frequency: "q12-24h", category: "Diabetes" },
+  { name: "Metformin", dose: "500-1000 mg", route: "PO", frequency: "q12h", category: "Diabetes" },
+  { name: "Glipizide", dose: "5-10 mg", route: "PO", frequency: "q24h", category: "Diabetes" },
+  
+  // Neuro/Psych
+  { name: "Haloperidol", dose: "2.5-5 mg", route: "PO/IV", frequency: "q8h PRN", category: "Neuro/Psych" },
+  { name: "Lorazepam", dose: "1-2 mg", route: "PO/IV", frequency: "q8h PRN", category: "Neuro/Psych" },
+  { name: "Diazepam", dose: "5-10 mg", route: "PO/IV", frequency: "q8h PRN", category: "Neuro/Psych" },
+  { name: "Phenytoin", dose: "300 mg", route: "PO/IV", frequency: "q24h", category: "Neuro/Psych" },
+  { name: "Levetiracetam", dose: "500-1000 mg", route: "PO/IV", frequency: "q12h", category: "Neuro/Psych" },
+  
+  // Other
+  { name: "Warfarin", dose: "2-5 mg", route: "PO", frequency: "q24h", category: "Anticoagulant" },
+  { name: "Allopurinol", dose: "100-300 mg", route: "PO", frequency: "q24h", category: "Other" },
+  { name: "Vitamin D", dose: "1000-2000 IU", route: "PO", frequency: "q24h", category: "Supplement" },
+  { name: "Calcium Carbonate", dose: "500 mg", route: "PO", frequency: "q8-12h", category: "Supplement" },
+];
+
 export default function EncounterDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -184,6 +255,11 @@ export default function EncounterDetailPage() {
   const [showCheatSheet, setShowCheatSheet] = useState(false);
   const [showInteractions, setShowInteractions] = useState(false);
   const [creatinine, setCreatinine] = useState("");
+  
+  // Autocomplete state
+  const [drugSuggestions, setDrugSuggestions] = useState<typeof COMMON_DRUGS>([]);
+  const [showDrugSuggestions, setShowDrugSuggestions] = useState(false);
+  const [selectedDrugIndex, setSelectedDrugIndex] = useState(0);
 
   // Weight editing
   const [isEditingWeight, setIsEditingWeight] = useState(false);
@@ -1112,6 +1188,65 @@ export default function EncounterDetailPage() {
     fetchData();
   };
 
+  // Drug autocomplete handlers
+  const handleDrugNameChange = (value: string) => {
+    setMedForm({ ...medForm, name: value });
+    
+    if (value.length >= 2) {
+      const filtered = COMMON_DRUGS.filter(drug =>
+        drug.name.toLowerCase().includes(value.toLowerCase())
+      ).slice(0, 10); // Limit to 10 suggestions
+      
+      setDrugSuggestions(filtered);
+      setShowDrugSuggestions(filtered.length > 0);
+      setSelectedDrugIndex(0);
+    } else {
+      setShowDrugSuggestions(false);
+      setDrugSuggestions([]);
+    }
+  };
+
+  const handleSelectDrug = (drug: typeof COMMON_DRUGS[0]) => {
+    setMedForm({
+      ...medForm,
+      name: drug.name,
+      dose: drug.dose,
+      route: drug.route,
+      frequency: drug.frequency,
+    });
+    setShowDrugSuggestions(false);
+    setDrugSuggestions([]);
+  };
+
+  const handleDrugKeyDown = (e: React.KeyboardEvent) => {
+    if (!showDrugSuggestions || drugSuggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedDrugIndex((prev) =>
+          prev < drugSuggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedDrugIndex((prev) =>
+          prev > 0 ? prev - 1 : drugSuggestions.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (drugSuggestions[selectedDrugIndex]) {
+          handleSelectDrug(drugSuggestions[selectedDrugIndex]);
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        setShowDrugSuggestions(false);
+        break;
+    }
+  };
+
   const handleDeleteFile = async (file: EncounterFile) => {
     if (!confirm("Are you sure you want to delete this file?")) return;
 
@@ -1187,16 +1322,16 @@ export default function EncounterDetailPage() {
   };
 
   return (
-    <div className="space-y-3 md:space-y-4 lg:space-y-6 pb-20 md:pb-6">
-      {/* Header - Mobile Optimized */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4">
+    <div className="space-y-3 md:space-y-4 lg:space-y-6 pb-20 md:pb-6 safe-bottom ios-bounce-disable">
+      {/* Header - Mobile Optimized for iOS */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4 ios-tap-highlight-none">
         {/* Left side - Patient info */}
         <div className="flex items-start gap-2 md:gap-3 flex-1 min-w-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push(`/patients/${patient.id}`)}
-            className="flex-shrink-0 -ml-2 touch-manipulation"
+            className="flex-shrink-0 -ml-2 touch-manipulation no-select tap-target active:scale-95 native-transition"
           >
             <ArrowLeft className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span className="hidden sm:inline text-xs md:text-sm">Back</span>
@@ -2787,13 +2922,56 @@ export default function EncounterDetailPage() {
         title={editingMed ? "Edit Medication" : "Add Medication"}
       >
         <form onSubmit={handleAddMedication} className="space-y-4">
-          <Input
-            label="Medication Name"
-            value={medForm.name}
-            onChange={(e) => setMedForm({ ...medForm, name: e.target.value })}
-            required
-            placeholder="e.g., Ceftriaxone"
-          />
+          {/* Drug name with autocomplete */}
+          <div className="relative">
+            <label className="label">Medication Name *</label>
+            <input
+              type="text"
+              value={medForm.name}
+              onChange={(e) => handleDrugNameChange(e.target.value)}
+              onKeyDown={handleDrugKeyDown}
+              onBlur={() => setTimeout(() => setShowDrugSuggestions(false), 200)}
+              required
+              placeholder="Start typing medication name..."
+              className="input"
+              autoComplete="off"
+            />
+            
+            {/* Autocomplete dropdown */}
+            {showDrugSuggestions && drugSuggestions.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-white border border-surface-300 rounded-lg shadow-lg max-h-64 overflow-y-auto ios-shadow-lg">
+                {drugSuggestions.map((drug, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleSelectDrug(drug)}
+                    className={`w-full text-left px-3 md:px-4 py-2 md:py-3 hover:bg-primary-50 transition-colors border-b border-surface-100 last:border-0 touch-manipulation ${
+                      index === selectedDrugIndex ? 'bg-primary-50' : ''
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm md:text-base text-surface-900 truncate">
+                          {drug.name}
+                        </p>
+                        <p className="text-xs md:text-sm text-surface-600 mt-0.5">
+                          {drug.dose} • {drug.route} • {drug.frequency}
+                        </p>
+                      </div>
+                      <span className="flex-shrink-0 text-[10px] md:text-xs text-primary-600 bg-primary-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded font-medium">
+                        {drug.category}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            
+            {/* Helper text */}
+            {!showDrugSuggestions && medForm.name.length > 0 && medForm.name.length < 2 && (
+              <p className="text-xs text-surface-500 mt-1">Type at least 2 characters to see suggestions</p>
+            )}
+          </div>
           <div className="space-y-2">
             <div className="grid grid-cols-3 gap-2 md:gap-3">
               <Input

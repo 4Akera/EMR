@@ -19,19 +19,29 @@ export const metadata: Metadata = {
   description: "Electronic Medical Records System",
   icons: {
     icon: "/favicon.svg",
+    apple: "/icon-192.png",
   },
   manifest: "/manifest.json",
-  themeColor: "#0ea5e9",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0ea5e9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0ea5e9" },
+  ],
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Hospital EMR",
+    statusBarStyle: "black-translucent",
+    title: "EMR",
   },
   viewport: {
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
+    viewportFit: "cover",
+  },
+  formatDetection: {
+    telephone: false,
+    email: false,
+    address: false,
   },
 };
 
@@ -45,14 +55,31 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0ea5e9" />
+        
+        {/* iOS-specific meta tags for native-like experience */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Hospital EMR" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="EMR" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="apple-touch-startup-image" href="/icon-512.png" />
+        
+        {/* Theme color for status bar */}
+        <meta name="theme-color" content="#0ea5e9" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#0ea5e9" media="(prefers-color-scheme: dark)" />
+        
+        {/* Viewport settings for iOS PWA */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        
+        {/* Disable iOS auto-detection */}
+        <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+        
+        {/* PWA optimization */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Service Worker registration
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                   navigator.serviceWorker.register('/sw.js').then(
@@ -64,6 +91,28 @@ export default function RootLayout({
                     }
                   );
                 });
+              }
+              
+              // iOS PWA detection and optimization
+              const isIOSPWA = ('standalone' in window.navigator) && window.navigator.standalone;
+              if (isIOSPWA) {
+                document.documentElement.classList.add('ios-pwa');
+                // Prevent pull-to-refresh
+                let lastTouchY = 0;
+                let preventPullToRefresh = false;
+                document.addEventListener('touchstart', (e) => {
+                  if (e.touches.length !== 1) return;
+                  lastTouchY = e.touches[0].clientY;
+                  preventPullToRefresh = window.pageYOffset === 0;
+                }, { passive: false });
+                document.addEventListener('touchmove', (e) => {
+                  const touchY = e.touches[0].clientY;
+                  const touchYDelta = touchY - lastTouchY;
+                  lastTouchY = touchY;
+                  if (preventPullToRefresh && touchYDelta > 0) {
+                    e.preventDefault();
+                  }
+                }, { passive: false });
               }
             `,
           }}

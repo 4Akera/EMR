@@ -6,9 +6,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-surface-50 to-surface-100">
+    <div className="min-h-screen bg-gradient-to-br from-surface-50 to-surface-100 ios-bounce-disable">
       <Header />
-      <main className="container mx-auto px-4 py-6">{children}</main>
+      <main className="container mx-auto px-4 py-6 safe-bottom">{children}</main>
     </div>
   );
 }

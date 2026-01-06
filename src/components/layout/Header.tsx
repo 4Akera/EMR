@@ -28,13 +28,13 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-surface-200 bg-white/95 backdrop-blur-md shadow-sm">
+      <header className="sticky top-0 z-40 w-full border-b border-surface-200 bg-white/95 backdrop-blur-md shadow-sm safe-area-inset-top ios-tap-highlight-none">
         <div className="container mx-auto px-4">
           <div className="flex h-14 md:h-16 items-center justify-between">
-            <div className="flex items-center gap-4 md:gap-8">
-              <Link href="/patients" className="flex items-center gap-2 group">
-                <Logo className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:scale-105" />
-                <span className="text-lg md:text-xl font-bold text-surface-900">
+            <div className="flex items-center gap-3 md:gap-4 lg:gap-8 flex-1 min-w-0">
+              <Link href="/patients" className="flex items-center gap-2 group no-select touch-manipulation">
+                <Logo className="w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 transition-transform group-hover:scale-105 group-active:scale-95" />
+                <span className="text-base md:text-lg lg:text-xl font-bold text-surface-900 truncate">
                   <span className="hidden sm:inline">Hospital</span>
                   <span className="text-primary-600">EMR</span>
                 </span>
@@ -49,10 +49,10 @@ export function Header() {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                        "flex items-center gap-2 px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all native-transition touch-manipulation no-select",
                         isActive
-                          ? "bg-primary-50 text-primary-700"
-                          : "text-surface-600 hover:bg-surface-100 hover:text-surface-900"
+                          ? "bg-primary-50 text-primary-700 ios-shadow"
+                          : "text-surface-600 hover:bg-surface-100 hover:text-surface-900 active:bg-surface-200"
                       )}
                     >
                       <item.icon className="w-4 h-4" />
@@ -63,13 +63,13 @@ export function Header() {
               </nav>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {/* Desktop Sign Out */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleSignOut}
-                className="hidden md:flex text-surface-500"
+                className="hidden md:flex text-surface-500 touch-manipulation no-select active:scale-95"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out
@@ -78,7 +78,8 @@ export function Header() {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg text-surface-600 hover:bg-surface-100"
+                className="md:hidden p-2 rounded-lg text-surface-600 hover:bg-surface-100 active:bg-surface-200 touch-manipulation tap-target no-select transition-all"
+                aria-label="Menu"
               >
                 {isMobileMenuOpen ? (
                   <X className="w-5 h-5" />
@@ -90,10 +91,10 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - iOS Native Style */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-surface-100 bg-white">
-            <div className="container mx-auto px-4 py-3 space-y-1">
+          <div className="md:hidden border-t border-surface-100 bg-white ios-shadow animate-in slide-in-from-top duration-200">
+            <div className="container mx-auto px-4 py-3 space-y-1 safe-bottom">
               {navItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 return (
@@ -102,10 +103,10 @@ export function Header() {
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                      "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all native-transition touch-manipulation no-select tap-target",
                       isActive
-                        ? "bg-primary-50 text-primary-700"
-                        : "text-surface-600 hover:bg-surface-100"
+                        ? "bg-primary-50 text-primary-700 ios-shadow"
+                        : "text-surface-600 hover:bg-surface-100 active:bg-surface-200"
                     )}
                   >
                     <item.icon className="w-5 h-5" />
@@ -119,7 +120,7 @@ export function Header() {
                   setIsMobileMenuOpen(false);
                   handleSignOut();
                 }}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 w-full"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 active:bg-red-100 w-full touch-manipulation no-select tap-target transition-all native-transition"
               >
                 <LogOut className="w-5 h-5" />
                 Sign Out
