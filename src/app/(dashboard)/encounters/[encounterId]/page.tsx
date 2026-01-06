@@ -227,6 +227,12 @@ export default function EncounterDetailPage() {
     problemListText: "",
   });
 
+  // Unsaved changes tracking
+  const [hasUnsavedNotes, setHasUnsavedNotes] = useState(false);
+  const [hasUnsavedDx, setHasUnsavedDx] = useState(false);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
   // Timeline action form - redesigned
   const [actionForm, setActionForm] = useState({
     type: "NOTE",
@@ -1509,6 +1515,7 @@ export default function EncounterDetailPage() {
             patientDetails={patientDetails}
             actions={actions}
             files={files}
+            medications={medications}
           />
           
           {/* Status change buttons - only for active encounters */}
@@ -1548,7 +1555,7 @@ export default function EncounterDetailPage() {
 
       {/* Vitals Editor */}
       {isEditingVitals && isActive && (
-        <div className="p-3 md:p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg dark:from-red-900/20 dark:to-pink-900/20 dark:border-red-800">
+        <div className="p-3 md:p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg dark:from-red-900/20 dark:to-pink-900/20 dark:border-red-800 overflow-hidden">
           <div className="flex items-center justify-between mb-2 md:mb-3">
             <div className="flex items-center gap-1.5 md:gap-2">
               <Activity className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
@@ -1556,12 +1563,12 @@ export default function EncounterDetailPage() {
             </div>
             <button
               onClick={() => setIsEditingVitals(false)}
-              className="text-surface-400 hover:text-surface-600"
+              className="text-surface-400 hover:text-surface-600 touch-manipulation"
             >
               <X className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 md:gap-3">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
             <div>
               <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
                 BP (mmHg)

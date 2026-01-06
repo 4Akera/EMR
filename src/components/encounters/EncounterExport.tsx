@@ -3,7 +3,7 @@
 import { Copy, Check, FileCode } from "lucide-react";
 import { Button } from "@/components/ui";
 import { useState } from "react";
-import type { Encounter, Patient, EncounterAction, EncounterFile, PatientDetails } from "@/lib/types/database";
+import type { Encounter, Patient, EncounterAction, EncounterFile, EncounterMedication, PatientDetails } from "@/lib/types/database";
 import { formatDateTime, getActionTypeLabel } from "@/lib/utils";
 
 interface EncounterExportProps {
@@ -12,6 +12,7 @@ interface EncounterExportProps {
   patientDetails?: PatientDetails | null;
   actions?: EncounterAction[];
   files?: EncounterFile[];
+  medications?: EncounterMedication[];
 }
 
 export function EncounterExport({ 
@@ -19,7 +20,8 @@ export function EncounterExport({
   patient, 
   patientDetails,
   actions = [],
-  files = []
+  files = [],
+  medications = []
 }: EncounterExportProps) {
   const [copied, setCopied] = useState(false);
 
@@ -33,6 +35,23 @@ export function EncounterExport({
       age--;
     }
     return age;
+  };
+
+  // Convert image URL to base64 for offline viewing on iPhone
+  const imageToBase64 = async (url: string): Promise<string> => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Failed to convert image to base64:', error);
+      return url; // Fallback to original URL
+    }
   };
 
   const generateEncounterHTML = (): string => {
@@ -211,6 +230,68 @@ export function EncounterExport({
       `;
     }
     
+    // Medications Prescribed
+    if (medications && medications.length > 0) {
+      const activeMeds = medications.filter(m => m.status === 'ACTIVE' && !m.deletedAt);
+      const stoppedMeds = medications.filter(m => m.status === 'STOPPED' && !m.deletedAt);
+      
+      html += `
+        <div class="section">
+          <h2 class="section-title">MEDICATIONS PRESCRIBED</h2>
+      `;
+      
+      if (activeMeds.length > 0) {
+        html += `
+          <div class="subsection">
+            <h3 class="subsection-title">Active Medications (${activeMeds.length})</h3>
+            <div class="medications-list">
+              ${activeMeds.map((med, index) => `
+                <div class="medication-item">
+                  <div class="medication-header">
+                    <span class="medication-number">${index + 1}.</span>
+                    <span class="medication-name">${med.name}</span>
+                  </div>
+                  <div class="medication-details">
+                    ${med.dose ? `<span><strong>Dose:</strong> ${med.dose}</span>` : ''}
+                    ${med.route ? `<span><strong>Route:</strong> ${med.route}</span>` : ''}
+                    ${med.frequency ? `<span><strong>Frequency:</strong> ${med.frequency}</span>` : ''}
+                  </div>
+                  ${med.indication ? `<div class="medication-indication"><strong>Indication:</strong> ${med.indication}</div>` : ''}
+                  ${med.notes ? `<div class="medication-notes"><strong>Notes:</strong> ${med.notes}</div>` : ''}
+                  <div class="medication-date">Started: ${formatDateTime(med.startAt)}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      if (stoppedMeds.length > 0) {
+        html += `
+          <div class="subsection">
+            <h3 class="subsection-title">Stopped Medications (${stoppedMeds.length})</h3>
+            <div class="medications-list stopped">
+              ${stoppedMeds.map((med, index) => `
+                <div class="medication-item stopped">
+                  <div class="medication-header">
+                    <span class="medication-number">${index + 1}.</span>
+                    <span class="medication-name">${med.name}</span>
+                  </div>
+                  <div class="medication-date">
+                    ${formatDateTime(med.startAt)} → ${med.stopAt ? formatDateTime(med.stopAt) : 'Unknown'}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+      
+      html += `
+        </div>
+      `;
+    }
+    
     // Timeline
     if (actions && actions.length > 0) {
       const sortedActions = [...actions].sort((a, b) => 
@@ -304,23 +385,31 @@ export function EncounterExport({
     }
   };
 
-  const generateFullHTML = () => {
+  const generateFullHTML = async () => {
     const contentHTML = generateEncounterHTML();
     
-    // Generate images HTML if files exist
+    // Generate images HTML with base64 encoding for offline viewing
     let imagesHTML = '';
     const imageFiles = files?.filter(f => f.fileType.startsWith('image/')) || [];
     
     if (imageFiles.length > 0) {
+      // Convert all images to base64
+      const imagePromises = imageFiles.map(async (file) => {
+        const base64Image = await imageToBase64(file.fileUrl);
+        return { ...file, base64Image };
+      });
+      
+      const imagesWithBase64 = await Promise.all(imagePromises);
+      
       imagesHTML = `
         <div class="images-section">
           <h2>ATTACHED IMAGES</h2>
           <div class="separator">───────────────────────────────────────────────────────</div>
-          ${imageFiles.map((file, index) => `
+          ${imagesWithBase64.map((file, index) => `
             <div class="image-container">
               <p class="image-title">${index + 1}. ${file.fileName}</p>
               ${file.caption ? `<p class="image-desc">Caption: ${file.caption}</p>` : ''}
-              <img src="${file.fileUrl}" alt="${file.fileName}" class="encounter-image" />
+              <img src="${file.base64Image}" alt="${file.fileName}" class="encounter-image" />
               <p class="image-date">Uploaded: ${formatDateTime(file.createdAt)}</p>
             </div>
           `).join('')}
@@ -486,6 +575,87 @@ export function EncounterExport({
               border: 1px solid #bfdbfe;
               font-weight: 600;
               color: #1e40af;
+            }
+            
+            .medications-list {
+              display: flex;
+              flex-direction: column;
+              gap: 12px;
+              padding: 12px;
+              background: white;
+              border-radius: 6px;
+            }
+            
+            .medication-item {
+              padding: 15px;
+              background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%);
+              border-left: 4px solid #0ea5e9;
+              border-radius: 6px;
+              page-break-inside: avoid;
+            }
+            
+            .medication-item.stopped {
+              background: #f9fafb;
+              border-left-color: #9ca3af;
+              opacity: 0.8;
+            }
+            
+            .medication-header {
+              display: flex;
+              gap: 8px;
+              align-items: baseline;
+              margin-bottom: 8px;
+            }
+            
+            .medication-number {
+              font-weight: 700;
+              color: #0ea5e9;
+              font-size: 11pt;
+            }
+            
+            .medication-name {
+              font-weight: 700;
+              color: #1f2937;
+              font-size: 12pt;
+            }
+            
+            .medication-item.stopped .medication-name {
+              text-decoration: line-through;
+              color: #6b7280;
+            }
+            
+            .medication-details {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 15px;
+              margin-bottom: 8px;
+              font-size: 10pt;
+              color: #374151;
+            }
+            
+            .medication-indication {
+              padding: 8px 12px;
+              background: #dbeafe;
+              border-radius: 4px;
+              font-size: 10pt;
+              color: #1e40af;
+              margin-bottom: 6px;
+            }
+            
+            .medication-notes {
+              padding: 8px 12px;
+              background: #fef3c7;
+              border-radius: 4px;
+              font-size: 10pt;
+              color: #92400e;
+              font-style: italic;
+              margin-bottom: 6px;
+            }
+            
+            .medication-date {
+              font-size: 9pt;
+              color: #6b7280;
+              margin-top: 6px;
             }
             
             .timeline {
@@ -769,8 +939,8 @@ export function EncounterExport({
     `;
   };
 
-  const handleDownloadHTML = () => {
-    const htmlContent = generateFullHTML();
+  const handleDownloadHTML = async () => {
+    const htmlContent = await generateFullHTML();
     
     // Create and download HTML file (can be printed to PDF from browser)
     const blob = new Blob([htmlContent], { type: 'text/html' });
