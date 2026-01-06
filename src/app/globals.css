@@ -141,13 +141,11 @@ body {
   /* iOS-specific PWA enhancements */
   html {
     height: 100%;
-    overflow: hidden;
   }
   
   body {
-    height: 100%;
-    overflow: auto;
-    overscroll-behavior-y: none;
+    min-height: 100%;
+    overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
   }
 }
@@ -200,7 +198,7 @@ body {
   
   /* iOS-style native app utilities */
   .ios-bounce-disable {
-    overscroll-behavior: none;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
   
@@ -241,10 +239,7 @@ button:active, .tap-active:active {
   transition: all 0.1s ease;
 }
 
-/* iOS-style pull-to-refresh prevention */
-html, body {
-  overscroll-behavior-y: contain;
-}
+  /* iOS-style pull-to-refresh prevention (only in PWA mode) */
 
 /* Native-like loading animation */
 @keyframes native-pulse {

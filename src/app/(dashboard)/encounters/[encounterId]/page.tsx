@@ -1322,7 +1322,7 @@ export default function EncounterDetailPage() {
   };
 
   return (
-    <div className="space-y-3 md:space-y-4 lg:space-y-6 pb-20 md:pb-6 safe-bottom ios-bounce-disable">
+    <div className="space-y-3 md:space-y-4 lg:space-y-6 pb-20 md:pb-6 safe-bottom">
       {/* Header - Mobile Optimized for iOS */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 md:gap-4 ios-tap-highlight-none">
         {/* Left side - Patient info */}
