@@ -28,7 +28,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-surface-200 bg-white/95 backdrop-blur-md shadow-sm safe-area-inset-top ios-tap-highlight-none">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-surface-200 bg-white backdrop-blur-md shadow-sm safe-area-inset-top ios-tap-highlight-none">
         <div className="container mx-auto px-4">
           <div className="flex h-14 md:h-16 items-center justify-between">
             <div className="flex items-center gap-3 md:gap-4 lg:gap-8 flex-1 min-w-0">
