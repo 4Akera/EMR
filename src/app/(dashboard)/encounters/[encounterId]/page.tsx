@@ -45,6 +45,7 @@ import {
   Clock,
   Save,
   AlertTriangle,
+  AlertCircle,
   FileText,
   ListChecks,
   Stethoscope,
@@ -94,7 +95,7 @@ const COMMON_DRUGS = [
   { name: "Piperacillin-Tazobactam", dose: "4.5 g", route: "IV", frequency: "q6-8h", category: "Antibiotic" },
   
   // Analgesics
-  { name: "Paracetamol", dose: "500 mg-1 g", route: "PO/IV", frequency: "q6h PRN", category: "Analgesic" },
+  { name: "Paracetamol", dose: "1 g", route: "PO/IV", frequency: "q6h PRN", category: "Analgesic" },
   { name: "Ibuprofen", dose: "400-600 mg", route: "PO", frequency: "q8h PRN", category: "Analgesic" },
   { name: "Diclofenac", dose: "50 mg", route: "PO", frequency: "q8h PRN", category: "Analgesic" },
   { name: "Tramadol", dose: "50-100 mg", route: "PO/IV", frequency: "q6h PRN", category: "Analgesic" },
@@ -102,7 +103,7 @@ const COMMON_DRUGS = [
   { name: "Fentanyl", dose: "25-100 mcg", route: "IV", frequency: "PRN", category: "Analgesic" },
   
   // Cardiovascular
-  { name: "Aspirin", dose: "75-100 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Aspirin", dose: "100 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
   { name: "Clopidogrel", dose: "75 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
   { name: "Atorvastatin", dose: "20-80 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
   { name: "Amlodipine", dose: "5-10 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
@@ -220,9 +221,21 @@ export default function EncounterDetailPage() {
     investigations: "",
     summary: "",
   });
+  const [originalNotesForm, setOriginalNotesForm] = useState({
+    cc: "",
+    hpi: "",
+    ros: "",
+    physicalExam: "",
+    investigations: "",
+    summary: "",
+  });
 
   // Dx form
   const [dxForm, setDxForm] = useState({
+    primaryDx: "",
+    problemListText: "",
+  });
+  const [originalDxForm, setOriginalDxForm] = useState({
     primaryDx: "",
     problemListText: "",
   });
@@ -320,18 +333,24 @@ export default function EncounterDetailPage() {
     if (encounterData) {
       const enc = encounterData as Encounter;
       setEncounter(enc);
-      setNotesForm({
+      const notesData = {
         cc: enc.cc || "",
         hpi: enc.hpi || "",
         ros: enc.ros || "",
         physicalExam: enc.physicalExam || "",
         investigations: enc.investigations || "",
         summary: enc.summary || "",
-      });
-      setDxForm({
+      };
+      const dxData = {
         primaryDx: enc.primaryDx || "",
         problemListText: enc.problemListText || "",
-      });
+      };
+      setNotesForm(notesData);
+      setOriginalNotesForm(notesData);
+      setDxForm(dxData);
+      setOriginalDxForm(dxData);
+      setHasUnsavedNotes(false);
+      setHasUnsavedDx(false);
 
       // Auto-collapse diagnosis and clinical sections if they have existing data
       // (patient re-entry for adjustment)
@@ -418,6 +437,31 @@ export default function EncounterDetailPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Track notes form changes
+  useEffect(() => {
+    const hasChanges = JSON.stringify(notesForm) !== JSON.stringify(originalNotesForm);
+    setHasUnsavedNotes(hasChanges);
+  }, [notesForm, originalNotesForm]);
+
+  // Track dx form changes
+  useEffect(() => {
+    const hasChanges = JSON.stringify(dxForm) !== JSON.stringify(originalDxForm);
+    setHasUnsavedDx(hasChanges);
+  }, [dxForm, originalDxForm]);
+
+  // Warn before leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedNotes || hasUnsavedDx) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedNotes, hasUnsavedDx]);
 
   // Close vitals editor if encounter becomes inactive
   useEffect(() => {
@@ -515,8 +559,8 @@ export default function EncounterDetailPage() {
   };
 
   // Notes handlers
-  const handleSaveNotes = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveNotes = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSavingNotes(true);
 
     const updateData: EncounterUpdate = {
@@ -537,6 +581,10 @@ export default function EncounterDetailPage() {
     if (error) {
       console.error("Error saving notes:", error);
       alert("Failed to save notes: " + error.message);
+    } else {
+      // Update original form to mark as saved
+      setOriginalNotesForm(notesForm);
+      setHasUnsavedNotes(false);
     }
 
     fetchData();
@@ -544,8 +592,8 @@ export default function EncounterDetailPage() {
   };
 
   // Dx handlers
-  const handleSaveDx = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveDx = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setIsSavingDx(true);
 
     const updateData: EncounterUpdate = {
@@ -562,10 +610,39 @@ export default function EncounterDetailPage() {
     if (error) {
       console.error("Error saving diagnosis:", error);
       alert("Failed to save diagnosis: " + error.message);
+    } else {
+      // Update original form to mark as saved
+      setOriginalDxForm(dxForm);
+      setHasUnsavedDx(false);
     }
 
     fetchData();
     setIsSavingDx(false);
+  };
+
+  // Check for unsaved changes before action (shows warning)
+  const checkUnsavedChanges = (action: () => void) => {
+    if (hasUnsavedNotes || hasUnsavedDx) {
+      setPendingAction(() => action);
+      setShowUnsavedWarning(true);
+      return false;
+    }
+    return true;
+  };
+
+  // Auto-save before file/camera actions
+  const autoSaveBeforeFileAction = async (action: () => void) => {
+    if (hasUnsavedNotes || hasUnsavedDx) {
+      // Auto-save silently
+      if (hasUnsavedNotes) {
+        await handleSaveNotes();
+      }
+      if (hasUnsavedDx) {
+        await handleSaveDx();
+      }
+    }
+    // Execute the action after saving
+    action();
   };
 
   // File upload handler with size limit and compression
@@ -2190,7 +2267,9 @@ export default function EncounterDetailPage() {
                         />
                         <button
                           type="button"
-                          onClick={() => investigationCameraRef.current?.click()}
+                          onClick={() => {
+                            autoSaveBeforeFileAction(() => investigationCameraRef.current?.click());
+                          }}
                           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-sm transition-colors"
                         >
                           <Camera className="w-4 h-4" />
@@ -2199,7 +2278,9 @@ export default function EncounterDetailPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => investigationGalleryRef.current?.click()}
+                          onClick={() => {
+                            autoSaveBeforeFileAction(() => investigationGalleryRef.current?.click());
+                          }}
                           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 shadow-sm transition-colors"
                         >
                           <ImageIcon className="w-4 h-4" />
@@ -2313,7 +2394,9 @@ export default function EncounterDetailPage() {
                     {/* File upload buttons */}
                     <button
                       type="button"
-                      onClick={() => cameraInputRef.current?.click()}
+                      onClick={() => {
+                        autoSaveBeforeFileAction(() => cameraInputRef.current?.click());
+                      }}
                       className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
                       title="Take photo with camera"
                     >
@@ -2322,7 +2405,9 @@ export default function EncounterDetailPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => galleryInputRef.current?.click()}
+                      onClick={() => {
+                        autoSaveBeforeFileAction(() => galleryInputRef.current?.click());
+                      }}
                       className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
                       title="Select from gallery. Max 200KB per file."
                     >
@@ -3437,6 +3522,78 @@ export default function EncounterDetailPage() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Unsaved Changes Warning Modal */}
+      <Modal
+        isOpen={showUnsavedWarning}
+        onClose={() => {
+          setShowUnsavedWarning(false);
+          setPendingAction(null);
+        }}
+        title="Unsaved Changes"
+      >
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 p-4 bg-warning-50 border border-warning-200 rounded-lg">
+            <AlertCircle className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-surface-700 font-medium mb-1">
+                You have unsaved changes
+              </p>
+              <p className="text-sm text-surface-600">
+                {hasUnsavedNotes && hasUnsavedDx
+                  ? "You have unsaved changes in Notes and Diagnosis sections."
+                  : hasUnsavedNotes
+                  ? "You have unsaved changes in the Notes section."
+                  : "You have unsaved changes in the Diagnosis section."}
+              </p>
+              <p className="text-sm text-surface-600 mt-2">
+                Would you like to save them before continuing?
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowUnsavedWarning(false);
+                setPendingAction(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setShowUnsavedWarning(false);
+                if (pendingAction) {
+                  pendingAction();
+                  setPendingAction(null);
+                }
+              }}
+            >
+              Discard Changes
+            </Button>
+            <Button
+              onClick={async () => {
+                // Save changes
+                if (hasUnsavedNotes) {
+                  await handleSaveNotes();
+                }
+                if (hasUnsavedDx) {
+                  await handleSaveDx();
+                }
+                setShowUnsavedWarning(false);
+                if (pendingAction) {
+                  pendingAction();
+                  setPendingAction(null);
+                }
+              }}
+            >
+              Save & Continue
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
