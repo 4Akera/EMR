@@ -45,7 +45,6 @@ import {
   Clock,
   Save,
   AlertTriangle,
-  AlertCircle,
   FileText,
   ListChecks,
   Stethoscope,
@@ -95,7 +94,7 @@ const COMMON_DRUGS = [
   { name: "Piperacillin-Tazobactam", dose: "4.5 g", route: "IV", frequency: "q6-8h", category: "Antibiotic" },
   
   // Analgesics
-  { name: "Paracetamol", dose: "1 g", route: "PO/IV", frequency: "q6h PRN", category: "Analgesic" },
+  { name: "Paracetamol", dose: "500 mg-1 g", route: "PO/IV", frequency: "q6h PRN", category: "Analgesic" },
   { name: "Ibuprofen", dose: "400-600 mg", route: "PO", frequency: "q8h PRN", category: "Analgesic" },
   { name: "Diclofenac", dose: "50 mg", route: "PO", frequency: "q8h PRN", category: "Analgesic" },
   { name: "Tramadol", dose: "50-100 mg", route: "PO/IV", frequency: "q6h PRN", category: "Analgesic" },
@@ -103,7 +102,7 @@ const COMMON_DRUGS = [
   { name: "Fentanyl", dose: "25-100 mcg", route: "IV", frequency: "PRN", category: "Analgesic" },
   
   // Cardiovascular
-  { name: "Aspirin", dose: "100 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
+  { name: "Aspirin", dose: "75-100 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
   { name: "Clopidogrel", dose: "75 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
   { name: "Atorvastatin", dose: "20-80 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
   { name: "Amlodipine", dose: "5-10 mg", route: "PO", frequency: "q24h", category: "Cardiovascular" },
@@ -221,30 +220,12 @@ export default function EncounterDetailPage() {
     investigations: "",
     summary: "",
   });
-  const [originalNotesForm, setOriginalNotesForm] = useState({
-    cc: "",
-    hpi: "",
-    ros: "",
-    physicalExam: "",
-    investigations: "",
-    summary: "",
-  });
 
   // Dx form
   const [dxForm, setDxForm] = useState({
     primaryDx: "",
     problemListText: "",
   });
-  const [originalDxForm, setOriginalDxForm] = useState({
-    primaryDx: "",
-    problemListText: "",
-  });
-
-  // Unsaved changes tracking
-  const [hasUnsavedNotes, setHasUnsavedNotes] = useState(false);
-  const [hasUnsavedDx, setHasUnsavedDx] = useState(false);
-  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
-  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   // Timeline action form - redesigned
   const [actionForm, setActionForm] = useState({
@@ -290,10 +271,15 @@ export default function EncounterDetailPage() {
   const [showVitalsTrends, setShowVitalsTrends] = useState(false);
   const [vitalsInput, setVitalsInput] = useState({
     bp: "",
+    bpAnnotation: "", // on N/A, on vasopressors, etc.
     hr: "",
+    hrAnnotation: "", // on pacing, on inotropes, etc.
     rr: "",
+    rrAnnotation: "", // on MV, spontaneous, etc.
     temp: "",
+    tempAnnotation: "", // axillary, tympanic, etc.
     spo2: "",
+    spo2Annotation: "", // on CPAP, on MV, room air, etc.
   });
   const [isSavingVitals, setIsSavingVitals] = useState(false);
   const [lastVitals, setLastVitals] = useState<EncounterAction | null>(null);
@@ -333,24 +319,18 @@ export default function EncounterDetailPage() {
     if (encounterData) {
       const enc = encounterData as Encounter;
       setEncounter(enc);
-      const notesData = {
+      setNotesForm({
         cc: enc.cc || "",
         hpi: enc.hpi || "",
         ros: enc.ros || "",
         physicalExam: enc.physicalExam || "",
         investigations: enc.investigations || "",
         summary: enc.summary || "",
-      };
-      const dxData = {
+      });
+      setDxForm({
         primaryDx: enc.primaryDx || "",
         problemListText: enc.problemListText || "",
-      };
-      setNotesForm(notesData);
-      setOriginalNotesForm(notesData);
-      setDxForm(dxData);
-      setOriginalDxForm(dxData);
-      setHasUnsavedNotes(false);
-      setHasUnsavedDx(false);
+      });
 
       // Auto-collapse diagnosis and clinical sections if they have existing data
       // (patient re-entry for adjustment)
@@ -437,31 +417,6 @@ export default function EncounterDetailPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Track notes form changes
-  useEffect(() => {
-    const hasChanges = JSON.stringify(notesForm) !== JSON.stringify(originalNotesForm);
-    setHasUnsavedNotes(hasChanges);
-  }, [notesForm, originalNotesForm]);
-
-  // Track dx form changes
-  useEffect(() => {
-    const hasChanges = JSON.stringify(dxForm) !== JSON.stringify(originalDxForm);
-    setHasUnsavedDx(hasChanges);
-  }, [dxForm, originalDxForm]);
-
-  // Warn before leaving page with unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedNotes || hasUnsavedDx) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [hasUnsavedNotes, hasUnsavedDx]);
 
   // Close vitals editor if encounter becomes inactive
   useEffect(() => {
@@ -559,8 +514,8 @@ export default function EncounterDetailPage() {
   };
 
   // Notes handlers
-  const handleSaveNotes = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSaveNotes = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSavingNotes(true);
 
     const updateData: EncounterUpdate = {
@@ -581,10 +536,6 @@ export default function EncounterDetailPage() {
     if (error) {
       console.error("Error saving notes:", error);
       alert("Failed to save notes: " + error.message);
-    } else {
-      // Update original form to mark as saved
-      setOriginalNotesForm(notesForm);
-      setHasUnsavedNotes(false);
     }
 
     fetchData();
@@ -592,8 +543,8 @@ export default function EncounterDetailPage() {
   };
 
   // Dx handlers
-  const handleSaveDx = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSaveDx = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSavingDx(true);
 
     const updateData: EncounterUpdate = {
@@ -610,39 +561,10 @@ export default function EncounterDetailPage() {
     if (error) {
       console.error("Error saving diagnosis:", error);
       alert("Failed to save diagnosis: " + error.message);
-    } else {
-      // Update original form to mark as saved
-      setOriginalDxForm(dxForm);
-      setHasUnsavedDx(false);
     }
 
     fetchData();
     setIsSavingDx(false);
-  };
-
-  // Check for unsaved changes before action (shows warning)
-  const checkUnsavedChanges = (action: () => void) => {
-    if (hasUnsavedNotes || hasUnsavedDx) {
-      setPendingAction(() => action);
-      setShowUnsavedWarning(true);
-      return false;
-    }
-    return true;
-  };
-
-  // Auto-save before file/camera actions
-  const autoSaveBeforeFileAction = async (action: () => void) => {
-    if (hasUnsavedNotes || hasUnsavedDx) {
-      // Auto-save silently
-      if (hasUnsavedNotes) {
-        await handleSaveNotes();
-      }
-      if (hasUnsavedDx) {
-        await handleSaveDx();
-      }
-    }
-    // Execute the action after saving
-    action();
   };
 
   // File upload handler with size limit and compression
@@ -953,13 +875,13 @@ export default function EncounterDetailPage() {
     }
     setIsSavingVitals(true);
 
-    // Format vitals into a readable text
+    // Format vitals into a readable text with annotations
     const vitalsText = [
-      vitalsInput.bp && `BP: ${vitalsInput.bp} mmHg`,
-      vitalsInput.hr && `HR: ${vitalsInput.hr} bpm`,
-      vitalsInput.rr && `RR: ${vitalsInput.rr}/min`,
-      vitalsInput.temp && `Temp: ${vitalsInput.temp}°C`,
-      vitalsInput.spo2 && `SpO2: ${vitalsInput.spo2}%`,
+      vitalsInput.bp && `BP: ${vitalsInput.bp} mmHg${vitalsInput.bpAnnotation ? ` (${vitalsInput.bpAnnotation})` : ''}`,
+      vitalsInput.hr && `HR: ${vitalsInput.hr} bpm${vitalsInput.hrAnnotation ? ` (${vitalsInput.hrAnnotation})` : ''}`,
+      vitalsInput.rr && `RR: ${vitalsInput.rr}/min${vitalsInput.rrAnnotation ? ` (${vitalsInput.rrAnnotation})` : ''}`,
+      vitalsInput.temp && `Temp: ${vitalsInput.temp}°C${vitalsInput.tempAnnotation ? ` (${vitalsInput.tempAnnotation})` : ''}`,
+      vitalsInput.spo2 && `SpO2: ${vitalsInput.spo2}%${vitalsInput.spo2Annotation ? ` (${vitalsInput.spo2Annotation})` : ''}`,
     ].filter(Boolean).join(" | ");
 
     const actionData = {
@@ -975,7 +897,7 @@ export default function EncounterDetailPage() {
       .insert(actionData as never);
 
     // Reset form and refresh
-    setVitalsInput({ bp: "", hr: "", rr: "", temp: "", spo2: "" });
+    setVitalsInput({ bp: "", bpAnnotation: "", hr: "", hrAnnotation: "", rr: "", rrAnnotation: "", temp: "", tempAnnotation: "", spo2: "", spo2Annotation: "" });
     setIsEditingVitals(false);
     setIsSavingVitals(false);
     fetchData();
@@ -1271,6 +1193,86 @@ export default function EncounterDetailPage() {
     fetchData();
   };
 
+  // Auto-save before camera/gallery (prevents data loss on mobile)
+  const autoSaveNotesBeforeCamera = async (inputRef: React.RefObject<HTMLInputElement>) => {
+    const hasChanges = notesForm.cc.trim() || notesForm.hpi.trim() || 
+                       notesForm.ros.trim() || notesForm.physicalExam.trim() || 
+                       notesForm.investigations.trim() || notesForm.summary.trim();
+    
+    if (hasChanges) {
+      // Auto-save notes first
+      const updateData: EncounterUpdate = {
+        cc: notesForm.cc.trim() || null,
+        hpi: notesForm.hpi.trim() || null,
+        ros: notesForm.ros.trim() || null,
+        physicalExam: notesForm.physicalExam.trim() || null,
+        investigations: notesForm.investigations.trim() || null,
+        summary: notesForm.summary.trim() || null,
+        updatedBy: currentUserId,
+      };
+
+      await supabase
+        .from("encounters")
+        .update(updateData as never)
+        .eq("id", encounterId);
+      
+      // Brief delay to ensure save completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    inputRef.current?.click();
+  };
+
+  const autoSaveTimelineBeforeCamera = async (inputRef: React.RefObject<HTMLInputElement>) => {
+    const hasText = actionForm.type === "TRANSFER" 
+      ? actionForm.transferTo.trim() 
+      : actionForm.text.trim();
+    
+    if (hasText) {
+      // Auto-save the timeline entry first
+      const now = new Date().toISOString();
+      const eventTime = actionForm.eventAt ? new Date(actionForm.eventAt).toISOString() : now;
+
+      if (actionForm.type === "TRANSFER") {
+        // Create transfer action
+        const actionData: EncounterActionInsert = {
+          encounterId,
+          type: "TRANSFER",
+          text: `Transfer to ${actionForm.transferTo.trim()}`,
+          eventAt: eventTime,
+          createdBy: currentUserId,
+        };
+        await supabase.from("encounter_actions").insert(actionData as never);
+
+        // Update encounter location
+        await supabase
+          .from("encounters")
+          .update({ currentLocation: actionForm.transferTo.trim() } as never)
+          .eq("id", encounterId);
+      } else {
+        // Create regular action
+        const actionData: EncounterActionInsert = {
+          encounterId,
+          type: actionForm.type,
+          text: actionForm.text.trim(),
+          eventAt: eventTime,
+          createdBy: currentUserId,
+        };
+        await supabase.from("encounter_actions").insert(actionData as never);
+      }
+
+      // Reset form
+      setActionForm({ type: "NOTE", text: "", eventAt: "", transferTo: "" });
+      setShowTimeInput(false);
+      fetchData();
+      
+      // Brief delay to ensure save completes
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    inputRef.current?.click();
+  };
+
   // Drug autocomplete handlers
   const handleDrugNameChange = (value: string) => {
     setMedForm({ ...medForm, name: value });
@@ -1484,26 +1486,26 @@ export default function EncounterDetailPage() {
             </div>
             
             {/* Encounter Info */}
-            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 lg:gap-4 text-[10px] md:text-xs lg:text-sm text-surface-500">
-              <span className="flex items-center gap-0.5 md:gap-1">
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 lg:gap-4 text-[10px] md:text-xs lg:text-sm text-surface-500 min-w-0 w-full">
+              <span className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
                 <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4" />
-                <span className="hidden sm:inline">{formatDateTime(encounter.startAt)}</span>
-                <span className="sm:hidden">{formatDateTime(encounter.startAt).split(' ')[1]}</span>
+                <span className="hidden sm:inline whitespace-nowrap">{formatDateTime(encounter.startAt)}</span>
+                <span className="sm:hidden whitespace-nowrap">{formatDateTime(encounter.startAt).split(' ')[1]}</span>
               </span>
               {encounter.currentLocation && (
                 <>
-                  <span className="text-surface-300">•</span>
-                  <span className="flex items-center gap-0.5 md:gap-1">
-                    <MapPin className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4" />
+                  <span className="text-surface-300 flex-shrink-0">•</span>
+                  <span className="flex items-center gap-0.5 md:gap-1 min-w-0 flex-shrink">
+                    <MapPin className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                     <span className="truncate max-w-[80px] sm:max-w-none">{encounter.currentLocation}</span>
                   </span>
                 </>
               )}
               {encounter.createdBy && (
                 <>
-                  <span className="text-surface-300 hidden sm:inline">•</span>
-                  <span className="hidden sm:flex items-center gap-0.5 md:gap-1 text-primary-600">
-                    <Users className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4" />
+                  <span className="text-surface-300 hidden sm:inline flex-shrink-0">•</span>
+                  <span className="hidden sm:flex items-center gap-0.5 md:gap-1 text-primary-600 min-w-0">
+                    <Users className="w-2.5 h-2.5 md:w-3 md:h-3 lg:w-4 lg:h-4 flex-shrink-0" />
                     <span className="truncate max-w-[100px] md:max-w-none">Created by {getUserName(encounter.createdBy)}</span>
                   </span>
                 </>
@@ -1512,15 +1514,15 @@ export default function EncounterDetailPage() {
               {/* Last Vitals Display */}
               {lastVitals && (
                 <>
-                  <span className="text-surface-400 hidden sm:inline">|</span>
-                  <div className="flex items-center gap-0.5 md:gap-1 w-full sm:w-auto mt-1.5 sm:mt-0">
+                  <span className="text-surface-400 hidden sm:inline flex-shrink-0">|</span>
+                  <div className="flex items-center gap-0.5 md:gap-1 w-full sm:w-auto mt-0.5 sm:mt-0 min-w-0 flex-1 sm:flex-initial">
                     <button
                       onClick={() => setShowVitalsTrends(!showVitalsTrends)}
-                      className="flex items-center gap-1 md:gap-1.5 hover:text-primary-600 transition-colors px-1.5 md:px-2 py-0.5 md:py-1 rounded-md hover:bg-primary-50 touch-manipulation"
+                      className="flex items-center gap-1 md:gap-1.5 hover:text-primary-600 transition-colors px-1.5 md:px-2 py-0.5 md:py-1 rounded-md hover:bg-primary-50 touch-manipulation min-w-0 w-full sm:w-auto overflow-hidden"
                     >
                       <Activity className="w-3 h-3 md:w-4 md:h-4 text-red-500 flex-shrink-0" />
-                      <span className="font-medium text-[10px] md:text-xs lg:text-sm text-surface-700 truncate">{lastVitals.text}</span>
-                      <span className="text-[9px] md:text-[10px] text-surface-400 flex-shrink-0 hidden sm:inline">
+                      <span className="font-medium text-[10px] md:text-xs lg:text-sm text-surface-700 truncate min-w-0">{lastVitals.text}</span>
+                      <span className="text-[9px] md:text-[10px] text-surface-400 flex-shrink-0 hidden sm:inline whitespace-nowrap">
                         ({formatRelativeTime(lastVitals.eventAt)})
                       </span>
                       <ChevronDown className={`w-2.5 h-2.5 md:w-3 md:h-3 transition-transform flex-shrink-0 ${showVitalsTrends ? 'rotate-180' : ''}`} />
@@ -1528,20 +1530,27 @@ export default function EncounterDetailPage() {
                     <button
                       onClick={() => {
                         if (!isActive) return;
-                        // Parse existing vitals to pre-fill form
+                        // Parse existing vitals to pre-fill form (with annotations in parentheses)
                         const text = lastVitals.text || "";
-                        const bpMatch = text.match(/BP:\s*([^\s|]+)/);
-                        const hrMatch = text.match(/HR:\s*([^\s|]+)/);
-                        const rrMatch = text.match(/RR:\s*([^\s|]+)/);
-                        const tempMatch = text.match(/Temp:\s*([^\s|]+)/);
-                        const spo2Match = text.match(/SpO2:\s*([^\s|]+)/);
+                        
+                        // Match value and optional annotation: "BP: 120/80 mmHg (on N/A)"
+                        const bpMatch = text.match(/BP:\s*([^\s(|]+)\s*mmHg(?:\s*\(([^)]+)\))?/);
+                        const hrMatch = text.match(/HR:\s*([^\s(|]+)\s*bpm(?:\s*\(([^)]+)\))?/);
+                        const rrMatch = text.match(/RR:\s*([^\s(|]+)\/min(?:\s*\(([^)]+)\))?/);
+                        const tempMatch = text.match(/Temp:\s*([^\s(|]+)°C(?:\s*\(([^)]+)\))?/);
+                        const spo2Match = text.match(/SpO2:\s*([^\s(|]+)%(?:\s*\(([^)]+)\))?/);
                         
                         setVitalsInput({
-                          bp: bpMatch ? bpMatch[1].replace(/mmHg/, '').trim() : "",
-                          hr: hrMatch ? hrMatch[1].replace(/bpm/, '').trim() : "",
-                          rr: rrMatch ? rrMatch[1].replace(/\/min/, '').trim() : "",
-                          temp: tempMatch ? tempMatch[1].replace(/°C/, '').trim() : "",
-                          spo2: spo2Match ? spo2Match[1].replace(/%/, '').trim() : "",
+                          bp: bpMatch ? bpMatch[1].trim() : "",
+                          bpAnnotation: bpMatch && bpMatch[2] ? bpMatch[2].trim() : "",
+                          hr: hrMatch ? hrMatch[1].trim() : "",
+                          hrAnnotation: hrMatch && hrMatch[2] ? hrMatch[2].trim() : "",
+                          rr: rrMatch ? rrMatch[1].trim() : "",
+                          rrAnnotation: rrMatch && rrMatch[2] ? rrMatch[2].trim() : "",
+                          temp: tempMatch ? tempMatch[1].trim() : "",
+                          tempAnnotation: tempMatch && tempMatch[2] ? tempMatch[2].trim() : "",
+                          spo2: spo2Match ? spo2Match[1].trim() : "",
+                          spo2Annotation: spo2Match && spo2Match[2] ? spo2Match[2].trim() : "",
                         });
                         setIsEditingVitals(true);
                         setShowVitalsTrends(false);
@@ -1592,7 +1601,6 @@ export default function EncounterDetailPage() {
             patientDetails={patientDetails}
             actions={actions}
             files={files}
-            medications={medications}
           />
           
           {/* Status change buttons - only for active encounters */}
@@ -1632,7 +1640,7 @@ export default function EncounterDetailPage() {
 
       {/* Vitals Editor */}
       {isEditingVitals && isActive && (
-        <div className="p-3 md:p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg dark:from-red-900/20 dark:to-pink-900/20 dark:border-red-800 overflow-hidden">
+        <div className="p-3 md:p-4 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-lg dark:from-red-900/20 dark:to-pink-900/20 dark:border-red-800">
           <div className="flex items-center justify-between mb-2 md:mb-3">
             <div className="flex items-center gap-1.5 md:gap-2">
               <Activity className="w-4 h-4 md:w-5 md:h-5 text-red-600" />
@@ -1640,73 +1648,163 @@ export default function EncounterDetailPage() {
             </div>
             <button
               onClick={() => setIsEditingVitals(false)}
-              className="text-surface-400 hover:text-surface-600 touch-manipulation"
+              className="text-surface-400 hover:text-surface-600"
             >
               <X className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
-            <div>
-              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
-                BP (mmHg)
-              </label>
-              <input
-                type="text"
-                value={vitalsInput.bp}
-                onChange={(e) => setVitalsInput({ ...vitalsInput, bp: e.target.value })}
-                placeholder="120/80"
-                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
+          
+          {/* Vitals Grid with Annotations */}
+          <div className="space-y-3 md:space-y-4">
+            {/* Row 1: BP, HR, RR */}
+            <div className="grid grid-cols-3 gap-2 md:gap-3">
+              {/* BP */}
+              <div>
+                <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
+                  BP (mmHg)
+                </label>
+                <input
+                  type="text"
+                  value={vitalsInput.bp}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, bp: e.target.value })}
+                  placeholder="120/80"
+                  className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <select
+                  value={vitalsInput.bpAnnotation}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, bpAnnotation: e.target.value })}
+                  className="w-full mt-1 px-1 py-0.5 text-[10px] md:text-xs border border-red-200 rounded bg-white text-surface-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+                >
+                  <option value="">No annotation</option>
+                  <option value="on N/A">on N/A (Noradrenaline)</option>
+                  <option value="on Vasopressors">on Vasopressors</option>
+                  <option value="on Inotropes">on Inotropes</option>
+                  <option value="on N/A + Dobutamine">on N/A + Dobutamine</option>
+                  <option value="MAP target 65">MAP target 65</option>
+                  <option value="MAP target 80">MAP target 80</option>
+                  <option value="post-dialysis">post-dialysis</option>
+                </select>
+              </div>
+              
+              {/* HR */}
+              <div>
+                <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
+                  HR (bpm)
+                </label>
+                <input
+                  type="text"
+                  value={vitalsInput.hr}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, hr: e.target.value })}
+                  placeholder="75"
+                  className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <select
+                  value={vitalsInput.hrAnnotation}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, hrAnnotation: e.target.value })}
+                  className="w-full mt-1 px-1 py-0.5 text-[10px] md:text-xs border border-red-200 rounded bg-white text-surface-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+                >
+                  <option value="">No annotation</option>
+                  <option value="on pacing">on Pacing</option>
+                  <option value="AF">AF (irregular)</option>
+                  <option value="regular">Regular</option>
+                  <option value="on β-blocker">on β-blocker</option>
+                  <option value="on Amiodarone">on Amiodarone</option>
+                </select>
+              </div>
+              
+              {/* RR */}
+              <div>
+                <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
+                  RR (/min)
+                </label>
+                <input
+                  type="text"
+                  value={vitalsInput.rr}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, rr: e.target.value })}
+                  placeholder="16"
+                  className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <select
+                  value={vitalsInput.rrAnnotation}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, rrAnnotation: e.target.value })}
+                  className="w-full mt-1 px-1 py-0.5 text-[10px] md:text-xs border border-red-200 rounded bg-white text-surface-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+                >
+                  <option value="">No annotation</option>
+                  <option value="on MV">on MV (ventilator)</option>
+                  <option value="spontaneous">Spontaneous</option>
+                  <option value="on CPAP/BiPAP">on CPAP/BiPAP</option>
+                  <option value="on HFNC">on HFNC</option>
+                  <option value="labored">Labored</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
-                HR (bpm)
-              </label>
-              <input
-                type="text"
-                value={vitalsInput.hr}
-                onChange={(e) => setVitalsInput({ ...vitalsInput, hr: e.target.value })}
-                placeholder="75"
-                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
-                RR (/min)
-              </label>
-              <input
-                type="text"
-                value={vitalsInput.rr}
-                onChange={(e) => setVitalsInput({ ...vitalsInput, rr: e.target.value })}
-                placeholder="16"
-                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
-                Temp (°C)
-              </label>
-              <input
-                type="text"
-                value={vitalsInput.temp}
-                onChange={(e) => setVitalsInput({ ...vitalsInput, temp: e.target.value })}
-                placeholder="37.0"
-                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
-                SpO2 (%)
-              </label>
-              <input
-                type="text"
-                value={vitalsInput.spo2}
-                onChange={(e) => setVitalsInput({ ...vitalsInput, spo2: e.target.value })}
-                placeholder="98"
-                className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
+            
+            {/* Row 2: Temp, SpO2 */}
+            <div className="grid grid-cols-2 gap-2 md:gap-3">
+              {/* Temp */}
+              <div>
+                <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
+                  Temp (°C)
+                </label>
+                <input
+                  type="text"
+                  value={vitalsInput.temp}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, temp: e.target.value })}
+                  placeholder="37.0"
+                  className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <select
+                  value={vitalsInput.tempAnnotation}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, tempAnnotation: e.target.value })}
+                  className="w-full mt-1 px-1 py-0.5 text-[10px] md:text-xs border border-red-200 rounded bg-white text-surface-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+                >
+                  <option value="">No annotation</option>
+                  <option value="axillary">Axillary</option>
+                  <option value="tympanic">Tympanic</option>
+                  <option value="rectal">Rectal</option>
+                  <option value="oral">Oral</option>
+                  <option value="post-antipyretic">Post-antipyretic</option>
+                  <option value="on cooling">on Cooling</option>
+                </select>
+              </div>
+              
+              {/* SpO2 */}
+              <div>
+                <label className="block text-[10px] md:text-xs font-medium text-surface-700 mb-0.5 md:mb-1">
+                  SpO2 (%)
+                </label>
+                <input
+                  type="text"
+                  value={vitalsInput.spo2}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, spo2: e.target.value })}
+                  placeholder="98"
+                  className="w-full px-1.5 md:px-2 py-1 md:py-1.5 text-xs md:text-sm border border-red-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <select
+                  value={vitalsInput.spo2Annotation}
+                  onChange={(e) => setVitalsInput({ ...vitalsInput, spo2Annotation: e.target.value })}
+                  className="w-full mt-1 px-1 py-0.5 text-[10px] md:text-xs border border-red-200 rounded bg-white text-surface-600 focus:outline-none focus:ring-1 focus:ring-red-500"
+                >
+                  <option value="">No annotation</option>
+                  <option value="on RA">on Room Air</option>
+                  <option value="on NC 2L">on NC 2L/min</option>
+                  <option value="on NC 4L">on NC 4L/min</option>
+                  <option value="on FM 6L">on FM 6L/min</option>
+                  <option value="on FM 10L">on FM 10L/min</option>
+                  <option value="on NRB 15L">on NRB 15L/min</option>
+                  <option value="on HFNC">on HFNC</option>
+                  <option value="on CPAP">on CPAP</option>
+                  <option value="on BiPAP">on BiPAP</option>
+                  <option value="on MV">on MV (ventilator)</option>
+                  <option value="FiO2 21%">FiO2 21%</option>
+                  <option value="FiO2 40%">FiO2 40%</option>
+                  <option value="FiO2 60%">FiO2 60%</option>
+                  <option value="FiO2 100%">FiO2 100%</option>
+                </select>
+              </div>
             </div>
           </div>
+          
           <div className="flex justify-end gap-1.5 md:gap-2 mt-3 md:mt-4">
             <Button
               variant="secondary"
@@ -1730,24 +1828,35 @@ export default function EncounterDetailPage() {
 
       {/* Vitals Trends Graph */}
       {showVitalsTrends && !isEditingVitals && (() => {
-        // Extract all vitals from actions
+        // Extract all vitals from actions with annotations
         const vitalsData = actions
           .filter(a => a.type === "VITALS")
           .map(action => {
             const text = action.text || "";
-            const bpMatch = text.match(/BP:\s*([^\s|]+)/);
-            const hrMatch = text.match(/HR:\s*([^\s|]+)/);
-            const rrMatch = text.match(/RR:\s*([^\s|]+)/);
-            const tempMatch = text.match(/Temp:\s*([^\s|]+)/);
-            const spo2Match = text.match(/SpO2:\s*([^\s|]+)/);
+            
+            // Match value and optional annotation: "BP: 120/80 mmHg (on N/A)"
+            const bpMatch = text.match(/BP:\s*([^\s(|]+)\s*mmHg(?:\s*\(([^)]+)\))?/);
+            const hrMatch = text.match(/HR:\s*([^\s(|]+)\s*bpm(?:\s*\(([^)]+)\))?/);
+            const rrMatch = text.match(/RR:\s*([^\s(|]+)\/min(?:\s*\(([^)]+)\))?/);
+            const tempMatch = text.match(/Temp:\s*([^\s(|]+)°C(?:\s*\(([^)]+)\))?/);
+            const spo2Match = text.match(/SpO2:\s*([^\s(|]+)%(?:\s*\(([^)]+)\))?/);
+            
+            // Parse BP for trend calculation (systolic)
+            const bpValue = bpMatch ? parseFloat(bpMatch[1].split('/')[0]) : null;
             
             return {
               time: action.eventAt,
-              bp: bpMatch ? bpMatch[1].replace(/mmHg/, '').trim() : null,
-              hr: hrMatch ? parseFloat(hrMatch[1].replace(/bpm/, '').trim()) : null,
-              rr: rrMatch ? parseFloat(rrMatch[1].replace(/\/min/, '').trim()) : null,
-              temp: tempMatch ? parseFloat(tempMatch[1].replace(/°C/, '').trim()) : null,
-              spo2: spo2Match ? parseFloat(spo2Match[1].replace(/%/, '').trim()) : null,
+              bp: bpMatch ? bpMatch[1].trim() : null,
+              bpAnnotation: bpMatch && bpMatch[2] ? bpMatch[2].trim() : null,
+              bpNumeric: bpValue,
+              hr: hrMatch ? parseFloat(hrMatch[1].trim()) : null,
+              hrAnnotation: hrMatch && hrMatch[2] ? hrMatch[2].trim() : null,
+              rr: rrMatch ? parseFloat(rrMatch[1].trim()) : null,
+              rrAnnotation: rrMatch && rrMatch[2] ? rrMatch[2].trim() : null,
+              temp: tempMatch ? parseFloat(tempMatch[1].trim()) : null,
+              tempAnnotation: tempMatch && tempMatch[2] ? tempMatch[2].trim() : null,
+              spo2: spo2Match ? parseFloat(spo2Match[1].trim()) : null,
+              spo2Annotation: spo2Match && spo2Match[2] ? spo2Match[2].trim() : null,
             };
           })
           .reverse(); // Oldest first
@@ -1772,113 +1881,203 @@ export default function EncounterDetailPage() {
               <p className="text-xs md:text-sm text-surface-500 text-center py-6 md:py-8">No vitals recorded yet</p>
             ) : (
               <div className="space-y-3 md:space-y-4">
-                {/* Timeline view of vitals */}
+                {/* Timeline view of vitals with annotations */}
                 <div className="space-y-2 md:space-y-3">
                   {vitalsData.map((vital, index) => (
-                    <div key={index} className="flex items-start gap-2 md:gap-3 p-2 md:p-3 bg-white rounded-lg shadow-sm">
+                    <div key={index} className="flex items-start gap-2 md:gap-3 p-2 md:p-3 bg-white rounded-lg shadow-sm border border-red-100">
                       <div className="flex-shrink-0 w-14 md:w-20 text-[10px] md:text-xs text-surface-500">
                         <div className="font-medium">{formatDateTime(vital.time).split(' ')[1]}</div>
                         <div className="text-[9px] md:text-[10px]">{formatDateTime(vital.time).split(' ')[0]}</div>
                       </div>
-                      <div className="flex-1 grid grid-cols-2 sm:grid-cols-5 gap-1.5 md:gap-2 text-[10px] md:text-xs">
-                        {vital.bp && (
-                          <div className="flex items-center gap-1">
-                            <span className="font-semibold text-blue-700">BP:</span>
-                            <span>{vital.bp}</span>
-                          </div>
-                        )}
-                        {vital.hr && (
-                          <div className="flex items-center gap-1">
-                            <span className="font-semibold text-red-700">HR:</span>
-                            <span>{vital.hr} bpm</span>
-                          </div>
-                        )}
-                        {vital.rr && (
-                          <div className="flex items-center gap-1">
-                            <span className="font-semibold text-purple-700">RR:</span>
-                            <span>{vital.rr}/min</span>
-                          </div>
-                        )}
-                        {vital.temp && (
-                          <div className="flex items-center gap-1">
-                            <span className="font-semibold text-orange-700">Temp:</span>
-                            <span>{vital.temp}°C</span>
-                          </div>
-                        )}
-                        {vital.spo2 && (
-                          <div className="flex items-center gap-1">
-                            <span className="font-semibold text-cyan-700">SpO2:</span>
-                            <span>{vital.spo2}%</span>
-                          </div>
-                        )}
+                      <div className="flex-1 space-y-1">
+                        {/* Primary vitals grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 md:gap-2 text-[10px] md:text-xs">
+                          {vital.bp && (
+                            <div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-semibold text-blue-700">BP:</span>
+                                <span className="font-medium">{vital.bp} <span className="text-[9px] md:text-[10px] text-surface-500">mmHg</span></span>
+                              </div>
+                              {vital.bpAnnotation && (
+                                <div className="text-[9px] text-blue-600 italic mt-0.5">{vital.bpAnnotation}</div>
+                              )}
+                            </div>
+                          )}
+                          {vital.hr && (
+                            <div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-semibold text-red-700">HR:</span>
+                                <span className="font-medium">{vital.hr} <span className="text-[9px] md:text-[10px] text-surface-500">bpm</span></span>
+                              </div>
+                              {vital.hrAnnotation && (
+                                <div className="text-[9px] text-red-600 italic mt-0.5">{vital.hrAnnotation}</div>
+                              )}
+                            </div>
+                          )}
+                          {vital.rr && (
+                            <div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-semibold text-purple-700">RR:</span>
+                                <span className="font-medium">{vital.rr} <span className="text-[9px] md:text-[10px] text-surface-500">/min</span></span>
+                              </div>
+                              {vital.rrAnnotation && (
+                                <div className="text-[9px] text-purple-600 italic mt-0.5">{vital.rrAnnotation}</div>
+                              )}
+                            </div>
+                          )}
+                          {vital.temp && (
+                            <div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-semibold text-orange-700">Temp:</span>
+                                <span className="font-medium">{vital.temp} <span className="text-[9px] md:text-[10px] text-surface-500">°C</span></span>
+                              </div>
+                              {vital.tempAnnotation && (
+                                <div className="text-[9px] text-orange-600 italic mt-0.5">{vital.tempAnnotation}</div>
+                              )}
+                            </div>
+                          )}
+                          {vital.spo2 && (
+                            <div>
+                              <div className="flex items-center gap-1">
+                                <span className="font-semibold text-cyan-700">SpO2:</span>
+                                <span className="font-medium">{vital.spo2} <span className="text-[9px] md:text-[10px] text-surface-500">%</span></span>
+                              </div>
+                              {vital.spo2Annotation && (
+                                <div className="text-[9px] text-cyan-600 italic mt-0.5">{vital.spo2Annotation}</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Simple visual trend indicators */}
+                {/* Enhanced Trend Summary */}
                 {vitalsData.length > 1 && (
-                  <div className="mt-4 p-3 bg-white rounded-lg">
-                    <h4 className="text-xs font-semibold text-surface-700 mb-2">Trend Summary</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                  <div className="mt-4 p-3 md:p-4 bg-white rounded-lg border-2 border-primary-200 shadow-sm">
+                    <h4 className="text-xs md:text-sm font-bold text-primary-900 mb-3 flex items-center gap-2">
+                      <span>📊</span>
+                      <span>Trend Analysis</span>
+                      <span className="text-[10px] font-normal text-surface-500">
+                        (comparing last 2 readings)
+                      </span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                       {(() => {
                         const latest = vitalsData[vitalsData.length - 1];
                         const previous = vitalsData[vitalsData.length - 2];
+                        const oldest = vitalsData[0];
                         
-                        const getTrend = (current: number | null, prev: number | null) => {
+                        const getTrend = (current: number | null, prev: number | null, label: string, unit: string, isBP = false) => {
                           if (!current || !prev) return null;
                           const diff = current - prev;
-                          if (Math.abs(diff) < 0.1) return { icon: "→", color: "text-surface-500", text: "stable" };
-                          if (diff > 0) return { icon: "↑", color: "text-red-600", text: `+${diff.toFixed(1)}` };
-                          return { icon: "↓", color: "text-blue-600", text: `${diff.toFixed(1)}` };
+                          const absDiff = Math.abs(diff);
+                          const threshold = isBP ? 5 : (label === 'Temp' ? 0.5 : 1);
+                          
+                          let icon, color, trend, bgColor;
+                          if (absDiff < threshold) {
+                            icon = "━";
+                            color = "text-green-700";
+                            bgColor = "bg-green-50";
+                            trend = "Stable";
+                          } else if (diff > 0) {
+                            icon = "↑";
+                            color = "text-red-700";
+                            bgColor = "bg-red-50";
+                            trend = "Increasing";
+                          } else {
+                            icon = "↓";
+                            color = "text-blue-700";
+                            bgColor = "bg-blue-50";
+                            trend = "Decreasing";
+                          }
+                          
+                          const diffText = diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1);
+                          
+                          return (
+                            <div className={`${bgColor} rounded-lg p-2 border ${color.replace('text-', 'border-')}`}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[10px] md:text-xs font-semibold text-surface-700">{label}</span>
+                                <span className={`text-lg ${color}`}>{icon}</span>
+                              </div>
+                              <div className="space-y-0.5">
+                                <div className="flex items-baseline gap-1">
+                                  <span className={`text-base md:text-lg font-bold ${color}`}>{current}</span>
+                                  <span className="text-[9px] md:text-[10px] text-surface-500">{unit}</span>
+                                </div>
+                                <div className="text-[9px] md:text-[10px] text-surface-600">
+                                  <span className={color}>{diffText}</span> from previous
+                                </div>
+                                <div className={`text-[9px] font-semibold ${color}`}>
+                                  {trend}
+                                </div>
+                              </div>
+                            </div>
+                          );
                         };
 
                         return (
                           <>
-                            {latest.hr && previous.hr && (() => {
-                              const trend = getTrend(latest.hr, previous.hr);
-                              return trend && (
-                                <div className={`flex items-center gap-1 ${trend.color}`}>
-                                  <span className="font-semibold">HR:</span>
-                                  <span>{trend.icon}</span>
-                                  <span>{trend.text}</span>
-                                </div>
-                              );
-                            })()}
-                            {latest.rr && previous.rr && (() => {
-                              const trend = getTrend(latest.rr, previous.rr);
-                              return trend && (
-                                <div className={`flex items-center gap-1 ${trend.color}`}>
-                                  <span className="font-semibold">RR:</span>
-                                  <span>{trend.icon}</span>
-                                  <span>{trend.text}</span>
-                                </div>
-                              );
-                            })()}
-                            {latest.temp && previous.temp && (() => {
-                              const trend = getTrend(latest.temp, previous.temp);
-                              return trend && (
-                                <div className={`flex items-center gap-1 ${trend.color}`}>
-                                  <span className="font-semibold">Temp:</span>
-                                  <span>{trend.icon}</span>
-                                  <span>{trend.text}°C</span>
-                                </div>
-                              );
-                            })()}
-                            {latest.spo2 && previous.spo2 && (() => {
-                              const trend = getTrend(latest.spo2, previous.spo2);
-                              return trend && (
-                                <div className={`flex items-center gap-1 ${trend.color}`}>
-                                  <span className="font-semibold">SpO2:</span>
-                                  <span>{trend.icon}</span>
-                                  <span>{trend.text}%</span>
-                                </div>
-                              );
-                            })()}
+                            {latest.bpNumeric && previous.bpNumeric && getTrend(latest.bpNumeric, previous.bpNumeric, 'BP (sys)', 'mmHg', true)}
+                            {latest.hr && previous.hr && getTrend(latest.hr, previous.hr, 'HR', 'bpm')}
+                            {latest.rr && previous.rr && getTrend(latest.rr, previous.rr, 'RR', '/min')}
+                            {latest.temp && previous.temp && getTrend(latest.temp, previous.temp, 'Temp', '°C')}
+                            {latest.spo2 && previous.spo2 && getTrend(latest.spo2, previous.spo2, 'SpO2', '%')}
                           </>
                         );
                       })()}
                     </div>
+                    
+                    {/* Overall Stability Indicator */}
+                    {vitalsData.length >= 3 && (
+                      <div className="mt-3 pt-3 border-t border-surface-200">
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="font-semibold text-surface-700">Overall Trend:</span>
+                          {(() => {
+                            const latest = vitalsData[vitalsData.length - 1];
+                            const oldest = vitalsData[0];
+                            let stableCount = 0;
+                            let totalMetrics = 0;
+                            
+                            if (latest.hr && oldest.hr) {
+                              totalMetrics++;
+                              if (Math.abs(latest.hr - oldest.hr) < 5) stableCount++;
+                            }
+                            if (latest.spo2 && oldest.spo2) {
+                              totalMetrics++;
+                              if (Math.abs(latest.spo2 - oldest.spo2) < 2) stableCount++;
+                            }
+                            if (latest.temp && oldest.temp) {
+                              totalMetrics++;
+                              if (Math.abs(latest.temp - oldest.temp) < 0.5) stableCount++;
+                            }
+                            
+                            const stabilityPercent = totalMetrics > 0 ? Math.round((stableCount / totalMetrics) * 100) : 0;
+                            
+                            return (
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2 bg-surface-200 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full transition-all ${
+                                      stabilityPercent >= 70 ? 'bg-green-500' : 
+                                      stabilityPercent >= 40 ? 'bg-yellow-500' : 
+                                      'bg-red-500'
+                                    }`}
+                                    style={{ width: `${stabilityPercent}%` }}
+                                  />
+                                </div>
+                                <span className="font-semibold text-surface-700 min-w-[60px]">
+                                  {stabilityPercent >= 70 ? '✅ Stable' : 
+                                   stabilityPercent >= 40 ? '⚠️ Variable' : 
+                                   '🔴 Unstable'}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -2267,10 +2466,8 @@ export default function EncounterDetailPage() {
                         />
                         <button
                           type="button"
-                          onClick={() => {
-                            autoSaveBeforeFileAction(() => investigationCameraRef.current?.click());
-                          }}
-                          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-sm transition-colors"
+                          onClick={() => autoSaveNotesBeforeCamera(investigationCameraRef)}
+                          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 shadow-sm transition-colors touch-manipulation"
                         >
                           <Camera className="w-4 h-4" />
                           <span className="hidden sm:inline">Take Photo</span>
@@ -2278,10 +2475,8 @@ export default function EncounterDetailPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
-                            autoSaveBeforeFileAction(() => investigationGalleryRef.current?.click());
-                          }}
-                          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 shadow-sm transition-colors"
+                          onClick={() => autoSaveNotesBeforeCamera(investigationGalleryRef)}
+                          className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg bg-purple-100 text-purple-700 hover:bg-purple-200 shadow-sm transition-colors touch-manipulation"
                         >
                           <ImageIcon className="w-4 h-4" />
                           <span className="hidden sm:inline">From Gallery</span>
@@ -2391,25 +2586,21 @@ export default function EncounterDetailPage() {
                       <ChevronDown className="w-2.5 h-2.5 md:w-3 md:h-3" />
                     </button>
 
-                    {/* File upload buttons */}
+                    {/* File upload buttons - auto-saves before opening to prevent data loss */}
                     <button
                       type="button"
-                      onClick={() => {
-                        autoSaveBeforeFileAction(() => cameraInputRef.current?.click());
-                      }}
-                      className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
-                      title="Take photo with camera"
+                      onClick={() => autoSaveTimelineBeforeCamera(cameraInputRef)}
+                      className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors touch-manipulation"
+                      title="Take photo with camera (auto-saves first)"
                     >
                       <Camera className="w-2.5 h-2.5 md:w-3 md:h-3" />
                       <span className="hidden sm:inline">Camera</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        autoSaveBeforeFileAction(() => galleryInputRef.current?.click());
-                      }}
-                      className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors"
-                      title="Select from gallery. Max 200KB per file."
+                      onClick={() => autoSaveTimelineBeforeCamera(galleryInputRef)}
+                      className="flex items-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-md bg-white text-surface-600 hover:bg-surface-100 transition-colors touch-manipulation"
+                      title="Select from gallery (auto-saves first). Max 200KB per file."
                     >
                       <Paperclip className="w-2.5 h-2.5 md:w-3 md:h-3" />
                       <span className="hidden sm:inline">Files</span>
@@ -3019,11 +3210,11 @@ export default function EncounterDetailPage() {
             <label className="label">Medication Name *</label>
             <input
               type="text"
-              value={medForm.name}
+            value={medForm.name}
               onChange={(e) => handleDrugNameChange(e.target.value)}
               onKeyDown={handleDrugKeyDown}
               onBlur={() => setTimeout(() => setShowDrugSuggestions(false), 200)}
-              required
+            required
               placeholder="Start typing medication name..."
               className="input"
               autoComplete="off"
@@ -3522,78 +3713,6 @@ export default function EncounterDetailPage() {
             </div>
           </div>
         )}
-      </Modal>
-
-      {/* Unsaved Changes Warning Modal */}
-      <Modal
-        isOpen={showUnsavedWarning}
-        onClose={() => {
-          setShowUnsavedWarning(false);
-          setPendingAction(null);
-        }}
-        title="Unsaved Changes"
-      >
-        <div className="space-y-4">
-          <div className="flex items-start gap-3 p-4 bg-warning-50 border border-warning-200 rounded-lg">
-            <AlertCircle className="w-5 h-5 text-warning-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm text-surface-700 font-medium mb-1">
-                You have unsaved changes
-              </p>
-              <p className="text-sm text-surface-600">
-                {hasUnsavedNotes && hasUnsavedDx
-                  ? "You have unsaved changes in Notes and Diagnosis sections."
-                  : hasUnsavedNotes
-                  ? "You have unsaved changes in the Notes section."
-                  : "You have unsaved changes in the Diagnosis section."}
-              </p>
-              <p className="text-sm text-surface-600 mt-2">
-                Would you like to save them before continuing?
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setShowUnsavedWarning(false);
-                setPendingAction(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setShowUnsavedWarning(false);
-                if (pendingAction) {
-                  pendingAction();
-                  setPendingAction(null);
-                }
-              }}
-            >
-              Discard Changes
-            </Button>
-            <Button
-              onClick={async () => {
-                // Save changes
-                if (hasUnsavedNotes) {
-                  await handleSaveNotes();
-                }
-                if (hasUnsavedDx) {
-                  await handleSaveDx();
-                }
-                setShowUnsavedWarning(false);
-                if (pendingAction) {
-                  pendingAction();
-                  setPendingAction(null);
-                }
-              }}
-            >
-              Save & Continue
-            </Button>
-          </div>
-        </div>
       </Modal>
     </div>
   );
