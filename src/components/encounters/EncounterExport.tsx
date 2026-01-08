@@ -455,18 +455,20 @@ export function EncounterExport({
     
     .timeline-images {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       gap: 8px;
       margin-top: 12px;
     }
     
     .timeline-image {
       width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
+      max-height: 300px;
+      object-fit: contain;
       border-radius: 8px;
       cursor: pointer;
       transition: transform 0.2s ease;
+      background: #f8fafc;
+      border: 1px solid var(--border);
     }
     
     .timeline-image:hover {
@@ -476,7 +478,7 @@ export function EncounterExport({
     /* Image Gallery */
     .gallery-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 12px;
     }
     
@@ -486,19 +488,23 @@ export function EncounterExport({
       overflow: hidden;
       background: #f1f5f9;
       border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
     }
     
     .gallery-image {
       width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
+      max-height: 400px;
+      min-height: 200px;
+      object-fit: contain;
       display: block;
       cursor: pointer;
       transition: transform 0.3s ease;
+      background: #ffffff;
     }
     
     .gallery-item:hover .gallery-image {
-      transform: scale(1.05);
+      transform: scale(1.02);
     }
     
     .gallery-caption {
@@ -717,9 +723,23 @@ export function EncounterExport({
         font-size: 10px;
       }
       
-      .gallery-grid {
-        grid-template-columns: repeat(2, 1fr);
+      .timeline-images {
+        grid-template-columns: 1fr;
         gap: 8px;
+      }
+      
+      .timeline-image {
+        max-height: 250px;
+      }
+      
+      .gallery-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .gallery-image {
+        max-height: 300px;
+        min-height: 150px;
       }
       
       .print-fab {
